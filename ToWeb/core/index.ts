@@ -1,21 +1,51 @@
 import * as fs from "fs";
-import { parse } from "@babel/core";
-// import path from 'path'
+import { parse, traverse } from "@babel/core";
+import * as Path from "path";
 import config from "../config";
 
 const { promises } = fs;
 
-// console.log("...config", config, fs);
+// const exts = [".ts", ".json", ".scss", ".tsx"];
+
+const { demoRoot } = config;
+// console.log("...config", config, config.root, config.demoRoot);
 
 const paths = {
   entry: "src/app.config.ts",
   ...config.pathMap,
 };
-async function build() {
-  const input = await promises.readFile(paths.entry);
-  const ast = await parse(input.toString(), { filename: paths.entry });
 
-  console.log("...entry", ast);
+async function build() {
+  const { entry } = paths;
+  // const input = await promises.readFile(entry);
+  // const ast = await parse(input.toString(), { filename: entry });
+  // const type = Path.extname(entry);
+  const { pages } = require(Path.join(demoRoot, entry)).default;
+
+  // console.log("...entry", entry, type, pages);
+
+  pages.forEach(async (page: string) => {
+    const pageEntryPath = Path.join(demoRoot, "src", `${page}.tsx`);
+    console.log("pageEntryPath", pageEntryPath);
+
+    const input = await promises.readFile(pageEntryPath);
+    const ast = await parse(input.toString(), { filename: pageEntryPath });
+    // const pluginAst = await parse(input.toString(), {
+    //   filename: pageEntryPath, // "file.tsx",
+    //   // sourceType: "module",
+    //   // plugins: ["jsx"],
+    // });
+    console.log("...ast", ast);
+    traverse(ast, {
+      // 进行 ast 转换
+      Identifier(_path) {
+        console.log("...path", ...arguments);
+        // 遍历变量的visitor
+        // ...
+      },
+      // 其他的visitor遍历器
+    });
+  });
 }
 
 build();

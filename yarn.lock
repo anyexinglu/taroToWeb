@@ -1979,6 +1979,13 @@ babel-plugin-dynamic-import-node@^2.3.3:
   dependencies:
     object.assign "^4.1.0"
 
+babel-plugin-jsx@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.npm.taobao.org/babel-plugin-jsx/download/babel-plugin-jsx-1.2.0.tgz#9c926e5ff421d376123ccbc103dfba5560d171e3"
+  integrity sha1-nJJuX/Qh03YSPMvBA9+6VWDRceM=
+  dependencies:
+    esutils "^2.0.2"
+
 babel-plugin-syntax-jsx@^6.8.0:
   version "6.18.0"
   resolved "https://registry.npm.taobao.org/babel-plugin-syntax-jsx/download/babel-plugin-syntax-jsx-6.18.0.tgz#0af32a9a6e13ca7a3fd5069e62d7b0f58d0d8946"
