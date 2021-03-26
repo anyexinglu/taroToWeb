@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { parse, traverse } from "@babel/core";
+import { transform } from "@babel/core";
 import * as Path from "path";
 import config from "../config";
 
@@ -7,7 +7,8 @@ const { promises } = fs;
 
 // const exts = [".ts", ".json", ".scss", ".tsx"];
 
-const { demoRoot } = config;
+const { demoRoot, ui } = config;
+const { tagMap } = ui;
 // console.log("...config", config, config.root, config.demoRoot);
 
 const paths = {
@@ -29,32 +30,67 @@ async function build() {
     console.log("pageEntryPath", pageEntryPath);
 
     const input = await promises.readFile(pageEntryPath);
-    const ast = await parse(input.toString(), { filename: pageEntryPath });
-    // const pluginAst = await parse(input.toString(), {
-    //   filename: pageEntryPath, // "file.tsx",
-    //   // sourceType: "module",
-    //   // plugins: ["jsx"],
-    // });
-    console.log("...ast", ast);
-    traverse(ast, {
-      // 进行 ast 转换
-      Identifier(_path) {
-        console.log("...path", ...arguments);
-        // 遍历变量的visitor
-        // ...
+    const code = input.toString();
+    transform(
+      code,
+      {
+        ast: true,
+        filename: pageEntryPath,
+        // presets: ["@babel/preset-env"],
+        // presets: [
+        //   "taro",
+        //   {
+        //     framework: "react",
+        //     ts: true,
+        //   },
+        // ],
+        plugins: [
+          function () {
+            return {
+              visitor: {
+                // Identifier(path, state) {},
+                // ASTNodeTypeHere(path, state) {},
+                ImportDeclaration(path) {
+                  const from = path?.node?.source?.value;
+                  console.log("...path", from);
+                  if (from?.startsWith(".")) {
+                    // console.log("...是相对路径", from);
+                    path.node.source.value = "...."; // ele.replaceWith("...");
+                  }
+                },
+                // JSXElement(path) {
+                //   const tag = path?.node?.openingElement?.name?.name;
+                //   console.log("...tag", tag);
+                //   let targetTag = tagMap[tag]
+                //   if (targetTag) {
+                //     path.replaceWith()
+
+                //   }
+                // },
+                JSXIdentifier(path) {
+                  // console.log("...JSXIdentifier", path);
+                  const name = path.node.name;
+                  let target = tagMap[name];
+                  if (target) {
+                    const { tag } = target;
+                    console.log("tag", tag, tag);
+
+                    path.node.name = tag;
+                    // path.replaceWith()
+                  }
+                },
+              },
+            };
+          },
+        ],
       },
-      // 其他的visitor遍历器
-    });
+      function (_err, _result) {
+        // const { cod}
+        console.log("...result", _result.code);
+        // console.log("...err", err);
+      }
+    );
   });
 }
 
 build();
-// let entry = fs.readFileSync(paths.entry, "utf8");
-// const ast = parse(entry);
-// console.log("...entry", entry, ast);
-
-// 2. 遍历 pages，针对每个 page，读取页面入口文件
-
-// 3. 组件依赖收集，作为 dep
-
-// 4. 组件 tagName 及生命周期替换（目前先只支持函数组件，未来扩展支持类组件），读取 navigationBarTitleText 等设置标题
