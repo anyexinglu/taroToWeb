@@ -1,6 +1,9 @@
 import * as fs from "fs";
 import { transform } from "@babel/core";
+// import generate from "@babel/generator";
+// import { parse } from "@babel/core";
 import * as Path from "path";
+import * as t from "@babel/types";
 import config from "../config";
 
 const { promises } = fs;
@@ -36,13 +39,14 @@ async function build() {
       {
         ast: true,
         filename: pageEntryPath,
-        // presets: ["@babel/preset-env"],
         // presets: [
-        //   "taro",
-        //   {
-        //     framework: "react",
-        //     ts: true,
-        //   },
+        //   [
+        //     "@babel/preset-react",
+        //     {
+        //       framework: "react",
+        //       ts: true,
+        //     },
+        //   ],
         // ],
         plugins: [
           function () {
@@ -58,27 +62,57 @@ async function build() {
                     path.node.source.value = "...."; // ele.replaceWith("...");
                   }
                 },
-                // JSXElement(path) {
-                //   const tag = path?.node?.openingElement?.name?.name;
-                //   console.log("...tag", tag);
-                //   let targetTag = tagMap[tag]
-                //   if (targetTag) {
-                //     path.replaceWith()
+                JSXElement(path) {
+                  const openingElement = path?.node?.openingElement;
+                  const openingElementNode = openingElement?.name;
+                  const closingElementNode = path?.node?.closingElement?.name;
+                  const tag = openingElementNode?.name;
+                  console.log("...tag", tag);
+                  let target = tagMap[tag];
+                  if (target) {
+                    const { tag: targetTag, className } = target;
+                    openingElementNode.name = targetTag;
+                    if (className) {
+                      const attributes = openingElement.attributes;
+                      let existedClassName = (attributes || []).find((item) => {
+                        const attributeName = item.name.name;
+                        return attributeName === "className";
+                      });
+                      if (existedClassName?.value) {
+                        existedClassName.value += ` ${className}`;
+                      } else {
+                        if (!attributes) {
+                          openingElement.attributes = [];
+                        }
+                        const newAttribute = t.jSXAttribute(
+                          t.jsxIdentifier("className"),
+                          t.stringLiteral(className)
+                        );
+                        openingElement.attributes.push(newAttribute);
+                        // openingElement.name = openingElementNode;
+                        // path.node.openingElement.name.attributes =
+                        //   openingElement.attributes;
+                        console.log("newAttribute", newAttribute, path.node);
+                      }
+                    }
+                    if (closingElementNode) {
+                      closingElementNode.name = targetTag;
+                    }
+                  }
+                  // path.replaceWith(path.node);
+                },
+                // JSXIdentifier(path) {
+                //   // console.log("...JSXIdentifier", path);
+                //   const name = path.node.name;
+                //   let target = tagMap[name];
+                //   if (target) {
+                //     const { tag } = target;
+                //     console.log("tag", tag, tag);
 
+                //     path.node.name = tag;
+                //     // path.replaceWith()
                 //   }
                 // },
-                JSXIdentifier(path) {
-                  // console.log("...JSXIdentifier", path);
-                  const name = path.node.name;
-                  let target = tagMap[name];
-                  if (target) {
-                    const { tag } = target;
-                    console.log("tag", tag, tag);
-
-                    path.node.name = tag;
-                    // path.replaceWith()
-                  }
-                },
               },
             };
           },
@@ -86,10 +120,20 @@ async function build() {
       },
       function (_err, _result) {
         // const { cod}
-        console.log("...result", _result.code);
-        // console.log("...err", err);
+        console.log("...err", _err);
+        console.log("...result", _result?.code);
       }
     );
+    // console.log("...ast", ast);
+    // const output = generate(
+    //   ast,
+    //   {
+    //     /* 选项 */
+    //   },
+    //   code
+    // );
+
+    // console.log("...output", output);
   });
 }
 

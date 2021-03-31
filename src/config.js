@@ -11,7 +11,7 @@ export default {
     // },
     tagMap: {
       View: { tag: "div" },
-      Text: { tag: "span", className: "text" },
+      Text: { tag: "span", className: "tagText" },
     },
   },
   /**

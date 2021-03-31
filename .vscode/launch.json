@@ -1,5 +1,12 @@
 {
 	"configurations": [
+		// {
+    //   "command": "node src/core/test.js",
+    //   // "command": "yarn test src/testing/testing.test.tsx",
+    //   "name": "yarn web",
+    //   "request": "launch",
+    //   "type": "node-terminal"
+    // },
 		{
       "command": "yarn web",
       // "command": "yarn test src/testing/testing.test.tsx",
