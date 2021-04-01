@@ -5,13 +5,18 @@ import { transform } from "@babel/core";
 import * as Path from "path";
 import * as t from "@babel/types";
 import config from "../config";
+import treeShake from "./shake";
+import { writeFile, deleteAll } from "./util";
+// const treeShake = require("./shake");
+
+console.log("...treeShake", treeShake);
 
 const { promises } = fs;
 
 // const exts = [".ts", ".json", ".scss", ".tsx"];
 
-const { demoRoot, ui } = config;
-const { tagMap } = ui;
+const { demoRoot, ui, output } = config;
+const { rawTagMap, fromLibrary, toLibrary, libraryTagMap } = ui;
 // console.log("...config", config, config.root, config.demoRoot);
 
 const paths = {
@@ -21,12 +26,8 @@ const paths = {
 
 async function build() {
   const { entry } = paths;
-  // const input = await promises.readFile(entry);
-  // const ast = await parse(input.toString(), { filename: entry });
-  // const type = Path.extname(entry);
   const { pages } = require(Path.join(demoRoot, entry)).default;
-
-  // console.log("...entry", entry, type, pages);
+  deleteAll(output);
 
   pages.forEach(async (page: string) => {
     const pageEntryPath = Path.join(demoRoot, "src", `${page}.tsx`);
@@ -39,27 +40,43 @@ async function build() {
       {
         ast: true,
         filename: pageEntryPath,
-        // presets: [
-        //   [
-        //     "@babel/preset-react",
-        //     {
-        //       framework: "react",
-        //       ts: true,
-        //     },
-        //   ],
-        // ],
         plugins: [
           function () {
             return {
               visitor: {
+                Program: (path, _asset) => {
+                  treeShake(path.scope);
+                },
                 // Identifier(path, state) {},
                 // ASTNodeTypeHere(path, state) {},
                 ImportDeclaration(path) {
                   const from = path?.node?.source?.value;
-                  console.log("...path", from);
-                  if (from?.startsWith(".")) {
-                    // console.log("...是相对路径", from);
-                    path.node.source.value = "...."; // ele.replaceWith("...");
+                  const specifiers = path?.node?.specifiers;
+                  // console.log("...path", from, path?.node);
+                  if (from === fromLibrary) {
+                    path.node.source.value = toLibrary;
+                    if (specifiers) {
+                      let newSpecifiers = specifiers.reduce((result, item) => {
+                        const name = item.imported.name;
+                        const rawItem = rawTagMap[name];
+                        const libraryItem = libraryTagMap[name];
+                        if (libraryItem) {
+                          const newName = libraryItem?.tag || libraryItem;
+                          item.imported.name = newName;
+                          item.local.name = newName;
+                          console.log("...result", name, newName);
+                          return [...result, item];
+                        } else if (!rawItem) {
+                          return [...result, item];
+                        }
+                        return result;
+                      }, []);
+                      path.node.specifiers = newSpecifiers;
+                    } else {
+                      path.remove();
+                    }
+                    // } else if (from?.startsWith(".")) {
+                    //   path.node.source.value = "...."; // ele.replaceWith("...");
                   }
                 },
                 JSXElement(path) {
@@ -68,38 +85,39 @@ async function build() {
                   const closingElementNode = path?.node?.closingElement?.name;
                   const tag = openingElementNode?.name;
                   console.log("...tag", tag);
-                  let target = tagMap[tag];
+                  const allTagMap = { ...rawTagMap, ...libraryTagMap };
+                  let target = allTagMap[tag];
                   if (target) {
-                    const { tag: targetTag, className } = target;
-                    openingElementNode.name = targetTag;
-                    if (className) {
-                      const attributes = openingElement.attributes;
-                      let existedClassName = (attributes || []).find((item) => {
-                        const attributeName = item.name.name;
-                        return attributeName === "className";
-                      });
-                      if (existedClassName?.value) {
-                        existedClassName.value += ` ${className}`;
-                      } else {
-                        if (!attributes) {
-                          openingElement.attributes = [];
-                        }
-                        const newAttribute = t.jSXAttribute(
-                          t.jsxIdentifier("className"),
-                          t.stringLiteral(className)
+                    const tagName = target.tag || target;
+                    openingElementNode.name = tagName;
+                    if (typeof target === "object") {
+                      const { className } = target;
+                      if (className) {
+                        const attributes = openingElement.attributes;
+                        let existedClassName = (attributes || []).find(
+                          (item) => {
+                            const attributeName = item.name.name;
+                            return attributeName === "className";
+                          }
                         );
-                        openingElement.attributes.push(newAttribute);
-                        // openingElement.name = openingElementNode;
-                        // path.node.openingElement.name.attributes =
-                        //   openingElement.attributes;
-                        console.log("newAttribute", newAttribute, path.node);
+                        if (existedClassName?.value) {
+                          existedClassName.value += ` ${className}`;
+                        } else {
+                          if (!attributes) {
+                            openingElement.attributes = [];
+                          }
+                          const newAttribute = t.jSXAttribute(
+                            t.jsxIdentifier("className"),
+                            t.stringLiteral(className)
+                          );
+                          openingElement.attributes.push(newAttribute);
+                        }
                       }
                     }
                     if (closingElementNode) {
-                      closingElementNode.name = targetTag;
+                      closingElementNode.name = tagName;
                     }
                   }
-                  // path.replaceWith(path.node);
                 },
                 // JSXIdentifier(path) {
                 //   // console.log("...JSXIdentifier", path);
@@ -118,22 +136,24 @@ async function build() {
           },
         ],
       },
-      function (_err, _result) {
-        // const { cod}
+      function (_err, result) {
+        const { code: outputCode } = result;
         console.log("...err", _err);
-        console.log("...result", _result?.code);
+        const relativePath = pageEntryPath.split("demo")[1];
+
+        console.log(
+          "...result code",
+          outputCode,
+          output,
+          pageEntryPath,
+          `${output}${relativePath}`
+        );
+        // fs.mkdirSync("output");
+        // fs.mkdirSync(`${output}/${pageEntryPath}`);
+
+        writeFile(`${output}${relativePath}`, outputCode);
       }
     );
-    // console.log("...ast", ast);
-    // const output = generate(
-    //   ast,
-    //   {
-    //     /* 选项 */
-    //   },
-    //   code
-    // );
-
-    // console.log("...output", output);
   });
 }
 
