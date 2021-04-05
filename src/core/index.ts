@@ -6,7 +6,7 @@ import * as Path from "path";
 import * as t from "@babel/types";
 import config from "../config";
 import treeShake from "./shake";
-import { writeFile, deleteAll } from "./util";
+import { writeFile, deleteAll, prettierFormat } from "./util";
 // const treeShake = require("./shake");
 
 console.log("...treeShake", treeShake);
@@ -51,28 +51,28 @@ async function build() {
                 // ASTNodeTypeHere(path, state) {},
                 ImportDeclaration(path) {
                   const from = path?.node?.source?.value;
-                  const specifiers = path?.node?.specifiers;
+                  const specifiers = path?.node?.specifiers || [];
                   // console.log("...path", from, path?.node);
                   if (from === fromLibrary) {
                     path.node.source.value = toLibrary;
-                    if (specifiers) {
-                      let newSpecifiers = specifiers.reduce((result, item) => {
-                        const name = item.imported.name;
-                        const rawItem = rawTagMap[name];
-                        const libraryItem = libraryTagMap[name];
-                        if (libraryItem) {
-                          const newName = libraryItem?.tag || libraryItem;
-                          item.imported.name = newName;
-                          item.local.name = newName;
-                          console.log("...result", name, newName);
-                          return [...result, item];
-                        } else if (!rawItem) {
-                          return [...result, item];
-                        }
-                        return result;
-                      }, []);
-                      path.node.specifiers = newSpecifiers;
-                    } else {
+                    let newSpecifiers = specifiers.reduce((result, item) => {
+                      const name = item.imported.name;
+                      const rawItem = rawTagMap[name];
+                      const libraryItem = libraryTagMap[name];
+                      if (libraryItem) {
+                        const newName = libraryItem?.tag || libraryItem;
+                        item.imported.name = newName;
+                        item.local.name = newName;
+                        console.log("...result", name, newName);
+                        return [...result, item];
+                      } else if (!rawItem) {
+                        return [...result, item];
+                      }
+                      return result;
+                    }, []);
+                    path.node.specifiers = newSpecifiers;
+                    // 如果出现 `import "antd"` 这种形式，remove 掉 path
+                    if (!newSpecifiers?.length) {
                       path.remove();
                     }
                     // } else if (from?.startsWith(".")) {
@@ -141,17 +141,12 @@ async function build() {
         console.log("...err", _err);
         const relativePath = pageEntryPath.split("demo")[1];
 
-        console.log(
-          "...result code",
-          outputCode,
-          output,
-          pageEntryPath,
-          `${output}${relativePath}`
-        );
+        console.log("...result code", outputCode);
+        console.log("...result code", prettierFormat(outputCode));
         // fs.mkdirSync("output");
         // fs.mkdirSync(`${output}/${pageEntryPath}`);
 
-        writeFile(`${output}${relativePath}`, outputCode);
+        writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
       }
     );
   });
