@@ -165,22 +165,37 @@ async function build() {
     // const code = input.toString();
     const callback = (deps) => {
       console.log("...deps", deps);
-      deps.forEach((dep) => {
-        let depPath = Path.join(
-          // demoRoot,
-          // "src",
-          // `${page}.tsx`,
-          pageEntryPath,
-          "../",
-          `${dep.pathStr}/index.tsx`
+      deps.forEach(async (dep) => {
+        let depPath = await findJsFile(
+          Path.join(pageEntryPath, "../", `${dep.pathStr}`)
         );
         console.log("...depPath", pageEntryPath, `${dep.pathStr}.tsx`, depPath);
-        transformJsx(depPath, callback);
+        depPath && transformJsx(depPath, callback);
       });
     };
 
     transformJsx(pageEntryPath, callback);
   });
+}
+
+// TODO 或许和真实规则不同
+let jsExtensions = [".tsx", ".ts", ".jsx", ".js"];
+async function findJsFile(basePath: string) {
+  for (let i = 0; i < jsExtensions.length; i++) {
+    const path = basePath + jsExtensions[i];
+    const isExist = await fs.existsSync(path);
+    const indexPath = basePath + "/index" + jsExtensions[i];
+
+    if (isExist) {
+      return path;
+    } else {
+      const isIndexExist = await fs.existsSync(indexPath);
+      if (isIndexExist) {
+        return indexPath;
+      }
+    }
+  }
+  return "";
 }
 
 build();
