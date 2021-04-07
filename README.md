@@ -8,5 +8,5 @@
 
 ## TODO
 
-- 分析相对路径的依赖，遇到 scss 照抄（view 和 text 比较困难），遇到组件同样进行编译
 - 修复 const 变成 var 的问题
+- 非 tsx 就不需要 transform
