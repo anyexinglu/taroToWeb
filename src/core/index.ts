@@ -6,7 +6,13 @@ import * as Path from "path";
 import * as t from "@babel/types";
 import config from "../config";
 import treeShake from "./shake";
-import { writeFile, deleteAll, prettierFormat } from "./util";
+import {
+  writeFile,
+  deleteAll,
+  prettierFormat,
+  findJsxFile,
+  findRealFile,
+} from "./util";
 // const treeShake = require("./shake");
 
 console.log("...treeShake", treeShake);
@@ -56,7 +62,7 @@ const transformJsx = async (fileEntryPath: string, callback) => {
                       const newName = libraryItem?.tag || libraryItem;
                       item.imported.name = newName;
                       item.local.name = newName;
-                      console.log("...result", name, newName);
+                      // console.log("...result", name, newName);
                       return [...result, item];
                     } else if (!rawItem) {
                       return [...result, item];
@@ -68,17 +74,22 @@ const transformJsx = async (fileEntryPath: string, callback) => {
                   if (!newSpecifiers?.length) {
                     path.remove();
                   }
-                } else if (
-                  from &&
-                  from.startsWith(".") &&
-                  !from.split("/").pop().includes(".")
-                ) {
-                  console.log("....from", from);
-                  // path.node.source.value = "...."; // ele.replaceWith("...");
-                  deps.push({
-                    pathStr: from, //path.node.source.value,
-                    node: path.node,
-                  });
+                } else if (from && from.startsWith(".")) {
+                  // 相对路径引入
+                  if (from.split("/").pop().includes(".")) {
+                    // console.log("....from", from);
+                    // path.node.source.value = "...."; // ele.replaceWith("...");
+                    deps.push({
+                      pathStr: from, //path.node.source.value,
+                      node: path.node,
+                    });
+                  } else {
+                    // console.log("..else..from", from);
+                    deps.push({
+                      pathStr: from, //path.node.source.value,
+                      node: path.node,
+                    });
+                  }
                 }
               },
               JSXElement(path) {
@@ -86,7 +97,7 @@ const transformJsx = async (fileEntryPath: string, callback) => {
                 const openingElementNode = openingElement?.name;
                 const closingElementNode = path?.node?.closingElement?.name;
                 const tag = openingElementNode?.name;
-                console.log("...tag", tag);
+                // console.log("...tag", tag);
                 const allTagMap = { ...rawTagMap, ...libraryTagMap };
                 let target = allTagMap[tag];
                 if (target) {
@@ -125,7 +136,7 @@ const transformJsx = async (fileEntryPath: string, callback) => {
               //   let target = tagMap[name];
               //   if (target) {
               //     const { tag } = target;
-              //     console.log("tag", tag, tag);
+              //     // console.log("tag", tag, tag);
 
               //     path.node.name = tag;
               //     // path.replaceWith()
@@ -138,18 +149,79 @@ const transformJsx = async (fileEntryPath: string, callback) => {
     },
     function (_err, result) {
       const { code: outputCode } = result;
-      console.log("...err", _err);
+      // console.log("...err", _err);
       const relativePath = fileEntryPath.split("demo")[1];
 
-      console.log("...result code", outputCode);
-      console.log("...result code", prettierFormat(outputCode));
+      console.log("...deps", fileEntryPath, deps);
+      // console.log("...result code", prettierFormat(outputCode));
       // fs.mkdirSync("output");
       // fs.mkdirSync(`${output}/${pageEntryPath}`);
-      callback?.(deps);
+      callback?.(deps, fileEntryPath);
       writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
     }
   );
   // return deps;
+};
+
+const pipeNormalFile = async (originFileEntryPath: string) => {
+  const fileEntryPath = await findRealFile(originFileEntryPath);
+  const input = await promises.readFile(fileEntryPath);
+  const code = input.toString();
+  console.log("...fileEntryPath", fileEntryPath, code);
+
+  const isJs = ["js", "ts"].includes(fileEntryPath.split(".").pop() || "");
+  if (isJs) {
+    // let deps: any = [];
+    transform(
+      code,
+      {
+        ast: true,
+        filename: fileEntryPath,
+        plugins: [
+          function () {
+            return {
+              visitor: {
+                Program: (path, _asset) => {
+                  treeShake(path.scope);
+                },
+                // Identifier(path, state) {},
+                // ASTNodeTypeHere(path, state) {},
+                ImportDeclaration(path) {
+                  const from = path?.node?.source?.value;
+                  // const specifiers = path?.node?.specifiers || [];
+                  // console.log("...path", from, path?.node);
+                  if (from && from.startsWith(".")) {
+                    // 相对路径引入，拷贝文件
+                    // deps.push({
+                    //   pathStr: from, //path.node.source.value,
+                    //   node: path.node,
+                    // });
+                    let normalFile = Path.join(fileEntryPath, "../", from);
+                    pipeNormalFile(normalFile);
+                  }
+                },
+              },
+            };
+          },
+        ],
+      },
+      function (_err, result) {
+        // console.log("...err", _err);
+        const { code: outputCode } = result || {};
+        const relativePath = fileEntryPath.split("demo")[1];
+
+        // console.log("...result code", outputCode);
+        // console.log("...result code", prettierFormat(outputCode));
+        // fs.mkdirSync("output");
+        // fs.mkdirSync(`${output}/${pageEntryPath}`);
+
+        writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
+      }
+    );
+  } else {
+    const relativePath = fileEntryPath.split("demo")[1];
+    writeFile(`${output}${relativePath}`, code);
+  }
 };
 
 async function build() {
@@ -159,43 +231,30 @@ async function build() {
 
   pages.forEach(async (page: string) => {
     const pageEntryPath = Path.join(demoRoot, "src", `${page}.tsx`);
-    console.log("pageEntryPath", pageEntryPath);
+    // console.log("pageEntryPath", pageEntryPath);
 
     // const input = await promises.readFile(pageEntryPath);
     // const code = input.toString();
-    const callback = (deps) => {
-      console.log("...deps", deps);
+    const callback = (deps, referPath: string) => {
       deps.forEach(async (dep) => {
-        let depPath = await findJsFile(
+        let jsxFilePath = await findJsxFile(
           Path.join(pageEntryPath, "../", `${dep.pathStr}`)
         );
-        console.log("...depPath", pageEntryPath, `${dep.pathStr}.tsx`, depPath);
-        depPath && transformJsx(depPath, callback);
+        if (jsxFilePath) {
+          // console.log("...depPath", pageEntryPath, jsxFilePath);
+          // eslint-disable-next-line no-shadow
+          transformJsx(jsxFilePath, callback);
+        } else {
+          let normalFile = Path.join(referPath, "../", `${dep.pathStr}`);
+          console.log("....pipe normalFile", dep.pathStr, normalFile);
+          pipeNormalFile(normalFile);
+          // writeFile(`${output}${dep.pathStr}`, prettierFormat(outputCode));
+        }
       });
     };
 
     transformJsx(pageEntryPath, callback);
   });
-}
-
-// TODO 或许和真实规则不同
-let jsExtensions = [".tsx", ".ts", ".jsx", ".js"];
-async function findJsFile(basePath: string) {
-  for (let i = 0; i < jsExtensions.length; i++) {
-    const path = basePath + jsExtensions[i];
-    const isExist = await fs.existsSync(path);
-    const indexPath = basePath + "/index" + jsExtensions[i];
-
-    if (isExist) {
-      return path;
-    } else {
-      const isIndexExist = await fs.existsSync(indexPath);
-      if (isIndexExist) {
-        return indexPath;
-      }
-    }
-  }
-  return "";
 }
 
 build();

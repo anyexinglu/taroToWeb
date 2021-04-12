@@ -81,3 +81,34 @@ export function prettierFormat(text: string) {
     // arrowParens: "avoid",
   });
 }
+
+export async function findJsxFile(basePath: string) {
+  // TODO 或许和真实规则不同
+  let jsExtensions = [".tsx", ".jsx", "/index.tsx", "/index.jsx"];
+  for (let i = 0; i < jsExtensions.length; i++) {
+    const path = basePath + jsExtensions[i];
+    const isExist = await fs.existsSync(path);
+
+    if (isExist) {
+      return path;
+    }
+  }
+  return "";
+}
+
+export async function findRealFile(basePath: string) {
+  let fileExtensions = [".ts", ".js", "/index.ts", "/index.js"];
+  const hasExtension = (basePath.split("/").pop() || "").includes(".");
+  if (hasExtension) {
+    return basePath;
+  }
+  for (let i = 0; i < fileExtensions.length; i++) {
+    const path = basePath + fileExtensions[i];
+    const isExist = await fs.existsSync(path);
+
+    if (isExist) {
+      return path;
+    }
+  }
+  return basePath;
+}

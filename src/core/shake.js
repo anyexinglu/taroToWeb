@@ -5,7 +5,6 @@ function treeShake(scope) {
   do {
     removed = false;
     scope.crawl();
-    console.log("...start shaking");
     Object.keys(scope.bindings).forEach((name) => {
       let binding = getUnusedBinding(scope.path, name);
 
