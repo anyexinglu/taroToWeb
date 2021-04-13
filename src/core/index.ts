@@ -13,9 +13,6 @@ import {
   findJsxFile,
   findRealFile,
 } from "./util";
-// const treeShake = require("./shake");
-
-console.log("...treeShake", treeShake);
 
 const { promises } = fs;
 
@@ -206,16 +203,16 @@ const pipeNormalFile = async (originFileEntryPath: string) => {
         ],
       },
       function (_err, result) {
-        // console.log("...err", _err);
+        console.log("...err", _err);
         const { code: outputCode } = result || {};
         const relativePath = fileEntryPath.split("demo")[1];
 
-        // console.log("...result code", outputCode);
+        console.log("...result code", fileEntryPath, code, outputCode);
         // console.log("...result code", prettierFormat(outputCode));
         // fs.mkdirSync("output");
         // fs.mkdirSync(`${output}/${pageEntryPath}`);
 
-        writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
+        writeFile(`${output}${relativePath}`, outputCode);
       }
     );
   } else {
@@ -246,7 +243,6 @@ async function build() {
           transformJsx(jsxFilePath, callback);
         } else {
           let normalFile = Path.join(referPath, "../", `${dep.pathStr}`);
-          console.log("....pipe normalFile", dep.pathStr, normalFile);
           pipeNormalFile(normalFile);
           // writeFile(`${output}${dep.pathStr}`, prettierFormat(outputCode));
         }

@@ -1,1 +1,5 @@
-export const noop = () => {}
+import { dom } from "./dom";
+
+export const noop = () => {};
+
+console.log("...dom", dom);

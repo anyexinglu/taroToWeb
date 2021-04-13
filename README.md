@@ -8,10 +8,8 @@
 
 ## TODO
 
-- 递归拷贝文件。普通文件要 copy 过来，比如 scss / css / json 等
 - 修复 const 变成 var 的问题
-- 非 tsx 就不需要 transform，直接照抄
-- output copy 一下 template（选型考虑：react + vite + antd？），尽量 yarn && yarn dev 后就能跑起来
+- 引入模板（选型考虑：react + vite + antd？），尽量 yarn && yarn dev 后就能跑起来
 
 1、当前的编译内容
 2、用 recast 改写
