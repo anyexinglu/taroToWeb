@@ -1,6 +1,0 @@
-{
-  "extends": ["taro/react"],
-  "rules": {
-    "jsx-quotes": "off"
-  }
-}

@@ -25,12 +25,12 @@ module.exports = (_, options = {}) => {
   plugins.push([
     require("@babel/plugin-transform-runtime"),
     {
-      regenerator: true,
+      // regenerator: true,
       // corejs: envOptions.corejs,
-      helpers: true,
+      // helpers: true,
       // useESModules: process.env.NODE_ENV !== "test",
-      absoluteRuntime,
-      version,
+      // absoluteRuntime,
+      // version,
     },
   ]);
 
