@@ -8,10 +8,13 @@ module.exports = (_, options = {}) => {
     options.framework.charAt(0).toUpperCase() + options.framework.slice(1);
 
   if (options.ts) {
-    const config = {};
-    if (isReact) {
-      config.jsxPragma = moduleName;
-    }
+    const config = {
+      // onlyRemoveTypeImports: true,
+    };
+    // if (isReact) {
+    //   config.jsxPragma = moduleName;
+    // }
+    // https://babeljs.io/docs/en/babel-preset-typescript
     presets.push([require("@babel/preset-typescript"), config]);
   }
 
@@ -22,12 +25,13 @@ module.exports = (_, options = {}) => {
   const runtimeVersion = require("@babel/runtime/package.json").version;
   const { absoluteRuntime = runtimePath, version = runtimeVersion } = options;
 
+  // https://babeljs.io/docs/en/babel-plugin-transform-runtime
   plugins.push([
     require("@babel/plugin-transform-runtime"),
     {
       // regenerator: true,
       // corejs: envOptions.corejs,
-      // helpers: true,
+      // helpers: false, // true,
       // useESModules: process.env.NODE_ENV !== "test",
       // absoluteRuntime,
       // version,

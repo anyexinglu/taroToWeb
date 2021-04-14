@@ -5,7 +5,7 @@ import { noop } from "../../utils";
 import "./index.scss";
 
 export default function Index(_props: any) {
-  const a = 1;
+  const a: number = 1;
   console.log("noop", noop, a);
   return (
     <View className="index">

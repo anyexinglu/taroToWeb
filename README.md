@@ -8,7 +8,7 @@
 
 ## TODO
 
-- 修复 const 变成 var 的问题
+- 修复 ts 丢失、空行被删除的问题
 - 引入模板（选型考虑：react + vite + antd？），尽量 yarn && yarn dev 后就能跑起来
 
 1、当前的编译内容
