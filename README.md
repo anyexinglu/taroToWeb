@@ -2,6 +2,12 @@
 
 将 taro 项目源码，转为可读性较高的（编译前的） web 项目源码，方便项目从小程序迁移到 web。
 
+## 项目模板
+
+基于 vite 脚手架，`yarn add sass fs readline events util`
+
+scss: https://vitejs.dev/guide/features.html#css-pre-processors
+
 ## 几个假设
 
 - 判断是否为项目自身组件的方式，是 import 的 path 是否是相对路径
