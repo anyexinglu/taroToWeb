@@ -15,23 +15,23 @@ export const makeDirs = (path) => {
   }
 };
 
-export function deleteAll(path) {
-  let files: any[] = [];
-  if (fs.existsSync(path)) {
-    files = fs.readdirSync(path);
-    files.forEach(function (file, _index) {
-      let curPath = path + "/" + file;
-      if (fs.statSync(curPath).isDirectory()) {
-        // recurse
-        deleteAll(curPath);
-      } else {
-        // delete file
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(path);
-  }
-}
+// export function deleteAll(path) {
+//   let files: any[] = [];
+//   if (fs.existsSync(path)) {
+//     files = fs.readdirSync(path);
+//     files.forEach(function (file, _index) {
+//       let curPath = path + "/" + file;
+//       if (fs.statSync(curPath).isDirectory()) {
+//         // recurse
+//         deleteAll(curPath);
+//       } else {
+//         // delete file
+//         fs.unlinkSync(curPath);
+//       }
+//     });
+//     fs.rmdirSync(path);
+//   }
+// }
 
 // 指定路径下创建文件并写入 code
 export const writeFile = (path, code) => {

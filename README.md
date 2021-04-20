@@ -14,19 +14,27 @@
 
 scss: https://vitejs.dev/guide/features.html#css-pre-processors
 
-## 几个假设
+## 使用方式
 
-- 判断是否为项目自身组件的方式，是 import 的 path 是否是相对路径
+clone 项目并 yarn 后：
+
+- yarn web
+- cd output
+- yarn && yarn dev
+- chrome 打开 http://localhost:3000/ 即可看到 web 项目
 
 ## TODO
 
+- 支持路由配置化
 - 修复 ts 丢失、空行被删除的问题
-- 引入模板（选型考虑：react + vite + antd？），尽量 yarn && yarn dev 后就能跑起来
+- 支持命令行方式调用
+- 用 recast 改写、用 Asset 优化代码
+- 学习个把 eslint 插件提醒：import 顺序、合并 import、禁止 setState callback 。
+  项目中有 new IntersectionObserver，但没有
+  require('intersection-observer')
 
-1、当前的编译内容
-2、用 recast 改写
-3、学习个把 eslint 插件提醒：import 顺序、合并 import、禁止 setState callback 。
-项目中有 new IntersectionObserver，但没有
-require('intersection-observer')
-4、分享前看下 pin-cli 和 cava 中相关应用。
-5、举例 tsdoc、抽取组件 interface 作为配置面板
+## 分享
+
+- 完整 Demo 跑起来
+- 分享前看下 pin-cli 和 cava 中相关应用
+- 举例 tsdoc、抽取组件 interface 作为配置面板

@@ -1,8 +1,10 @@
 import * as Path from "path";
 
+const root = Path.join(__dirname, "../");
 export default {
-  root: __dirname,
-  demoRoot: Path.join(__dirname, "../demo"),
+  root,
+  srcRoot: __dirname,
+  demoRoot: Path.join(root, "/demo"),
   ui: {
     fromLibrary: "@tarojs/components",
     toLibrary: "antd",

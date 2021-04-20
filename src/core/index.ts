@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import { transform } from "@babel/core";
 // import generate from "@babel/generator";
 // import { parse } from "@babel/core";
@@ -8,17 +8,15 @@ import config from "../config";
 import treeShake from "./shake";
 import {
   writeFile,
-  deleteAll,
+  // deleteAll,
   prettierFormat,
   findJsxFile,
   findRealFile,
 } from "./util";
 
-const { promises } = fs;
-
 // const exts = [".ts", ".json", ".scss", ".tsx"];
 
-const { demoRoot, ui, output } = config;
+const { demoRoot, ui, output, root } = config;
 const { rawTagMap, fromLibrary, toLibrary, libraryTagMap } = ui;
 // console.log("...config", config, config.root, config.demoRoot);
 
@@ -28,7 +26,7 @@ const paths = {
 };
 
 const transformJsx = async (fileEntryPath: string, callback) => {
-  const input = await promises.readFile(fileEntryPath);
+  const input = await fs.readFile(fileEntryPath);
   const code = input.toString();
   let deps: any = [];
   transform(
@@ -162,7 +160,7 @@ const transformJsx = async (fileEntryPath: string, callback) => {
 
 const pipeNormalFile = async (originFileEntryPath: string) => {
   const fileEntryPath = await findRealFile(originFileEntryPath);
-  const input = await promises.readFile(fileEntryPath);
+  const input = await fs.readFile(fileEntryPath);
   const code = input.toString();
   console.log("...fileEntryPath", fileEntryPath, code);
 
@@ -224,13 +222,25 @@ const pipeNormalFile = async (originFileEntryPath: string) => {
 async function build() {
   const { entry } = paths;
   const { pages } = require(Path.join(demoRoot, entry)).default;
-  deleteAll(output);
+
+  console.log(
+    "...entry",
+    entry,
+    root,
+    findJsxFile,
+    transformJsx,
+    demoRoot,
+    pages
+  );
+  fs.removeSync(output);
+  // deleteAll(output);
+  fs.copySync(Path.join(__dirname, "../template"), Path.join(root, "output"));
 
   pages.forEach(async (page: string) => {
     const pageEntryPath = Path.join(demoRoot, "src", `${page}.tsx`);
     // console.log("pageEntryPath", pageEntryPath);
 
-    // const input = await promises.readFile(pageEntryPath);
+    // const input = await fs.readFile(pageEntryPath);
     // const code = input.toString();
     const callback = (deps, referPath: string) => {
       deps.forEach(async (dep) => {
