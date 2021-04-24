@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-import Home from "./pages/index";
-import logo from "./logo.svg";
 import "./App.css";
+import routes from "./routes";
+console.log("...routes", routes);
 
 function App() {
   const [count, setCount] = useState(0);
@@ -11,7 +11,9 @@ function App() {
     <div className="App">
       <Router>
         <Switch>
-          <Route path="/" exact component={Home} />
+          {routes.map((item) => {
+            return <Route {...item} />;
+          })}
         </Switch>
       </Router>
     </div>
