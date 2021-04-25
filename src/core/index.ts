@@ -6,6 +6,7 @@ import * as Path from "path";
 import * as t from "@babel/types";
 import config from "../config";
 import treeShake from "./shake";
+import * as ejs from "ejs";
 import {
   writeFile,
   // deleteAll,
@@ -235,6 +236,7 @@ async function build() {
   fs.removeSync(output);
   // deleteAll(output);
   fs.copySync(Path.join(__dirname, "../template"), Path.join(root, "output"));
+  generateRoutes();
 
   pages.forEach(async (page: string) => {
     const pageEntryPath = Path.join(demoRoot, "src", `${page}.tsx`);
@@ -261,6 +263,34 @@ async function build() {
 
     transformJsx(pageEntryPath, callback);
   });
+}
+
+function generateRoutes() {
+  const appConf = require(Path.join(demoRoot, "src/app.config.ts")).default;
+  console.log("...appConf", appConf);
+  const routes = [
+    {
+      path: "/",
+      componentPath: appConf.pages[0],
+    },
+  ];
+  appConf.subpackages.forEach((element) => {
+    element.pages.forEach((page) => {
+      routes.push({
+        path: `${element.root}/${page}`,
+        componentPath: `${element.root}/${page}`,
+      });
+    });
+  });
+  const templateContent = fs
+    .readFileSync(Path.join(__dirname, "../template/src/routes.ejs"))
+    .toString();
+
+  const result = ejs.render(templateContent, {
+    routes,
+  });
+
+  writeFile(`${output}/src/route.tsx`, prettierFormat(result));
 }
 
 build();

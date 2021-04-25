@@ -11,21 +11,13 @@ const loadableConf = {
   loading: Loading,
 };
 
-export default [
+export default [<% routes.forEach(function(item){ %>
   {
-    path: "/",
+    path: "'<%= item.path %>'",
     exact: true,
     component: Loadable({
-      loader: () => import("./pages/index/index"),
+      loader: () => import("<%= item.componentPath %>"),
       ...loadableConf,
-    }),
+    })
   },
-  {
-    path: "/list",
-    exact: true,
-    component: Loadable({
-      loader: () => import("./list/index/index"),
-      ...loadableConf,
-    }),
-  },
-];
+<% }) %>];

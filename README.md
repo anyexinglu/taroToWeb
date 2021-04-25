@@ -29,9 +29,13 @@ clone 项目并 yarn 后：
 - 修复 ts 丢失、空行被删除的问题
 - 支持命令行方式调用
 - 用 recast 改写、用 Asset 优化代码
+
+## 延伸
+
 - 学习个把 eslint 插件提醒：import 顺序、合并 import、禁止 setState callback 。
   项目中有 new IntersectionObserver，但没有
   require('intersection-observer')
+- 写一个 vite-react 项目脚手架？（支持要不要 antd）
 
 ## 分享
 

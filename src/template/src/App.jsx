@@ -8,13 +8,14 @@ console.log("...routes", routes);
 
 function App() {
   const [count, setCount] = useState(0);
+  console.log("...render App");
 
   return (
     <div className="App">
       <Router>
         <Switch>
           {routes.map((item) => {
-            return <Route {...item} />;
+            return <Route key={item.path} {...item} />;
           })}
         </Switch>
       </Router>

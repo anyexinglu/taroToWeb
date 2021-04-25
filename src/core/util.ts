@@ -43,7 +43,9 @@ export const writeFile = (path, code) => {
   if (dir) {
     makeDirs(dir);
   }
-  fs.writeFileSync(path, code);
+  fs.writeFileSync(path, code, {
+    encoding: "utf8",
+  });
 };
 
 export function prettierFormat(text: string) {
