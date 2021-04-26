@@ -23,14 +23,19 @@ clone 项目并 yarn 后：
 - yarn && yarn dev
 - chrome 打开 http://localhost:3000/ 即可看到 web 项目
 
+## 支持情况
+
+- [x] 支持 SPA（使用 Browser history）
+- [x] 自动 @tarojs/taro 内部方法，如 navigateTo 等
+  - [x] 支持页面内部链接跳转
+- [x] 引入 react-loadable 按需加载路由
+- [x] Demo 完整跑起来
+
 ## TODO
 
 - 修复 ts 丢失、空行被删除的问题
 - 支持命令行方式调用
 - 用 recast 改写、用 Asset 优化代码
-
-## 延伸
-
 - 学习个把 eslint 插件提醒：import 顺序、合并 import、禁止 setState callback 。
   项目中有 new IntersectionObserver，但没有
   require('intersection-observer')
@@ -38,6 +43,5 @@ clone 项目并 yarn 后：
 
 ## 分享
 
-- 完整 Demo 跑起来
 - 分享前看下 pin-cli 和 cava 中相关应用
 - 举例 tsdoc、抽取组件 interface 作为配置面板
