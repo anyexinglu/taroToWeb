@@ -2,11 +2,15 @@
 import { defineConfig } from "vite";
 import reactRefresh from "@vitejs/plugin-react-refresh";
 import vitePluginImp from "vite-plugin-imp";
+import path from "path";
 
 /**
  * @type { import('vite').UserConfig }
  */
 const config = defineConfig({
+  alias: [
+    { find: "@/utils", replacement: path.resolve(__dirname, "src/utils") },
+  ],
   css: {
     preprocessorOptions: {
       less: {

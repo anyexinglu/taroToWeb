@@ -15,7 +15,7 @@ export default function Index(_props: any) {
       <Button
         onClick={() => {
           navigateTo({
-            url: "/list/index/index",
+            url: "/list/index",
           });
         }}
       >

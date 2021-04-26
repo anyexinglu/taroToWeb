@@ -86,6 +86,8 @@ const transformJsx = async (fileEntryPath: string, callback) => {
                       node: path.node,
                     });
                   }
+                } else if (from === "@tarojs/taro") {
+                  path.node.source.value = "@/utils/taro";
                 }
               },
               JSXElement(path) {
@@ -194,6 +196,8 @@ const pipeNormalFile = async (originFileEntryPath: string) => {
                     // });
                     let normalFile = Path.join(fileEntryPath, "../", from);
                     pipeNormalFile(normalFile);
+                  } else if (from === "@tarojs/taro") {
+                    path.node.source.value = "@/utils/taro";
                   }
                 },
               },
@@ -222,7 +226,7 @@ const pipeNormalFile = async (originFileEntryPath: string) => {
 
 async function build() {
   const { entry } = paths;
-  const { pages } = require(Path.join(demoRoot, entry)).default;
+  const { pages, subpackages } = require(Path.join(demoRoot, entry)).default;
 
   console.log(
     "...entry",
@@ -238,7 +242,17 @@ async function build() {
   fs.copySync(Path.join(__dirname, "../template"), Path.join(root, "output"));
   generateRoutes();
 
-  pages.forEach(async (page: string) => {
+  const allPages = [
+    ...pages,
+    ...subpackages.reduce((total, item) => {
+      let subTotal = item.pages.map((page) => `${item.root}/${page}`);
+      return [...total, ...subTotal];
+    }, []),
+  ];
+
+  console.log("...allPages", allPages);
+
+  allPages.forEach(async (page: string) => {
     const pageEntryPath = Path.join(demoRoot, "src", `${page}.tsx`);
     // console.log("pageEntryPath", pageEntryPath);
 
@@ -277,7 +291,7 @@ function generateRoutes() {
   appConf.subpackages.forEach((element) => {
     element.pages.forEach((page) => {
       routes.push({
-        path: `${element.root}/${page}`,
+        path: `/${element.root}/${page}`.replace(/\/index$/, ""),
         componentPath: `${element.root}/${page}`,
       });
     });
@@ -290,7 +304,7 @@ function generateRoutes() {
     routes,
   });
 
-  writeFile(`${output}/src/route.tsx`, prettierFormat(result));
+  writeFile(`${output}/src/routes.tsx`, prettierFormat(result));
 }
 
 build();
