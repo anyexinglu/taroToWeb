@@ -25,11 +25,14 @@ clone 项目并 yarn 后：
 
 ## 支持情况
 
+- [x] 支持 sass 样式
+- [x] 支持 ts
+- [x] Demo 完整跑起来
+- [x] 引入 react-loadable 按需加载路由
 - [x] 支持 SPA（使用 Browser history）
 - [x] 自动 @tarojs/taro 内部方法，如 navigateTo 等
   - [x] 支持页面内部链接跳转
-- [x] 引入 react-loadable 按需加载路由
-- [x] Demo 完整跑起来
+- [x] 支持 antd（less）
 
 ## TODO
 
