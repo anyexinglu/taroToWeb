@@ -59,3 +59,10 @@ clone 项目并 yarn 后：
 `import { parse } from "@babel/parser"`
 
 <!-- 2、如果直接引入 transform，则 -->
+
+## 相关资源推荐
+
+- [前端领域的转译打包工具链](https://deeplang.org/assets/files/transpilers-package-tools-in-frontend-by-xuguang.pdf)
+  - [《前端领域的转译打包工具链》上篇](https://juejin.cn/post/6956602138201948196)
+- [回顾 babel 6 和 7，来预测下 babel 8](https://juejin.cn/post/6956224866312060942)
+- [阿里妈妈的 AST 处理工具](https://github.com/thx/gogocode)
