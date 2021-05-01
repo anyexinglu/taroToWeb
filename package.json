@@ -9,6 +9,7 @@
     "css": "sass"
   },
   "scripts": {
+    "web0": "ts-node src/core/index0.ts",
     "web": "ts-node src/core/index.ts"
   },
   "browserslist": [
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.8.0",
+    "@babel/plugin-transform-typescript": "^7.13.0",
     "@types/react": "^16.0.0",
     "@types/webpack-env": "^1.13.6",
     "@typescript-eslint/eslint-plugin": "^2.x",

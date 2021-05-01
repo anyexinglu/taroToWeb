@@ -1,5 +1,5 @@
-import { parse, transformFromAst } from "@babel/core";
-// import { parse } from "@babel/parser";
+import { transformFromAst } from "@babel/core";
+import { parse } from "@babel/parser";
 
 const build = async () => {
   const code = `
@@ -19,12 +19,12 @@ const build = async () => {
   const result = await parse(code, {
     // ast: true,
     sourceType: "unambiguous",
-    filename: "fileEntryPath",
+    // filename: "fileEntryPath",
     // presets: ["@babel/preset-typescript"],
     // presets: [["@babel/preset-typescript", {}]],
     plugins: [
       "typescript",
-      // "jsx",
+      "jsx",
       // "exportDefaultFrom",
       // "typescript",
       // "exportNamespaceFrom",

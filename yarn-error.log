@@ -1,5 +1,5 @@
 Arguments: 
-  /Users/yangxiayan/.nvm/versions/node/v12.16.3/bin/node /Users/yangxiayan/.yarn/bin/yarn.js add babel-plugin-typescript
+  /Users/yangxiayan/.nvm/versions/node/v12.16.3/bin/node /Users/yangxiayan/.yarn/bin/yarn.js add babel-plugin-typescript -D
 
 PATH: 
   /Users/yangxiayan/.yarn/bin:/Users/yangxiayan/.config/yarn/global/node_modules/.bin:/Users/yangxiayan/.yarn/bin:/Users/yangxiayan/.config/yarn/global/node_modules/.bin:/Users/yangxiayan/.nvm/versions/node/v12.16.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin

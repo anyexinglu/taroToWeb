@@ -1,7 +1,8 @@
 import * as fs from "fs-extra";
 import { transform } from "@babel/core";
-// import generate from "@babel/generator";
-// import { parse } from "@babel/core";
+import generator from "@babel/generator";
+import traverse from "@babel/traverse";
+import { parse } from "@babel/parser";
 import * as Path from "path";
 import * as t from "@babel/types";
 import config from "../config";
@@ -26,138 +27,264 @@ const paths = {
   ...config.pathMap,
 };
 
-const transformJsx = async (fileEntryPath: string, callback) => {
+const transformJsx = async (fileEntryPath: string, _callback) => {
   const input = await fs.readFile(fileEntryPath);
   const code = input.toString();
   let deps: any = [];
-  transform(
-    code,
-    {
-      ast: true,
-      filename: fileEntryPath,
-      plugins: [
-        function () {
-          return {
-            visitor: {
-              Program: (path, _asset) => {
-                treeShake(path.scope);
-              },
-              // Identifier(path, state) {},
-              // ASTNodeTypeHere(path, state) {},
-              ImportDeclaration(path) {
-                const from = path?.node?.source?.value;
-                const specifiers = path?.node?.specifiers || [];
-                // console.log("...path", from, path?.node);
-                if (from === fromLibrary) {
-                  path.node.source.value = toLibrary;
-                  let newSpecifiers = specifiers.reduce((result, item) => {
-                    const name = item.imported.name;
-                    const rawItem = rawTagMap[name];
-                    const libraryItem = libraryTagMap[name];
-                    if (libraryItem) {
-                      const newName = libraryItem?.tag || libraryItem;
-                      item.imported.name = newName;
-                      item.local.name = newName;
-                      // console.log("...result", name, newName);
-                      return [...result, item];
-                    } else if (!rawItem) {
-                      return [...result, item];
-                    }
-                    return result;
-                  }, []);
-                  path.node.specifiers = newSpecifiers;
-                  // 如果出现 `import "antd"` 这种形式，remove 掉 path
-                  if (!newSpecifiers?.length) {
-                    path.remove();
-                  }
-                } else if (from && from.startsWith(".")) {
-                  // 相对路径引入
-                  if (from.split("/").pop().includes(".")) {
-                    // console.log("....from", from);
-                    // path.node.source.value = "...."; // ele.replaceWith("...");
-                    deps.push({
-                      pathStr: from, //path.node.source.value,
-                      node: path.node,
-                    });
-                  } else {
-                    // console.log("..else..from", from);
-                    deps.push({
-                      pathStr: from, //path.node.source.value,
-                      node: path.node,
-                    });
-                  }
-                } else if (from === "@tarojs/taro") {
-                  path.node.source.value = "@/utils/taro";
-                }
-              },
-              JSXElement(path) {
-                const openingElement = path?.node?.openingElement;
-                const openingElementNode = openingElement?.name;
-                const closingElementNode = path?.node?.closingElement?.name;
-                const tag = openingElementNode?.name;
-                // console.log("...tag", tag);
-                const allTagMap = { ...rawTagMap, ...libraryTagMap };
-                let target = allTagMap[tag];
-                if (target) {
-                  const tagName = target.tag || target;
-                  openingElementNode.name = tagName;
-                  if (typeof target === "object") {
-                    const { className } = target;
-                    if (className) {
-                      const attributes = openingElement.attributes;
-                      let existedClassName = (attributes || []).find((item) => {
-                        const attributeName = item.name.name;
-                        return attributeName === "className";
-                      });
-                      if (existedClassName?.value) {
-                        existedClassName.value += ` ${className}`;
-                      } else {
-                        if (!attributes) {
-                          openingElement.attributes = [];
-                        }
-                        const newAttribute = t.jSXAttribute(
-                          t.jsxIdentifier("className"),
-                          t.stringLiteral(className)
-                        );
-                        openingElement.attributes.push(newAttribute);
-                      }
-                    }
-                  }
-                  if (closingElementNode) {
-                    closingElementNode.name = tagName;
-                  }
-                }
-              },
-              // JSXIdentifier(path) {
-              //   // console.log("...JSXIdentifier", path);
-              //   const name = path.node.name;
-              //   let target = tagMap[name];
-              //   if (target) {
-              //     const { tag } = target;
-              //     // console.log("tag", tag, tag);
 
-              //     path.node.name = tag;
-              //     // path.replaceWith()
-              //   }
-              // },
-            },
-          };
-        },
-      ],
+  const ast = parse(code, {
+    sourceType: "unambiguous",
+    // filename: "fileEntryPath",
+    // presets: ["@babel/preset-typescript"],
+    // presets: [["@babel/preset-typescript", {}]],
+    plugins: [
+      "typescript",
+      "jsx",
+      // "exportDefaultFrom",
+      // "typescript",
+      // "exportNamespaceFrom",
+      // "importAssertions",
+    ],
+  });
+
+  traverse(ast, {
+    // visitor: {
+    Program: (path, _asset) => {
+      treeShake(path.scope);
     },
-    function (_err, result) {
-      console.log("...err", _err);
-      const { code: outputCode } = result || {};
-      const relativePath = fileEntryPath.split("demo")[1];
+    // Identifier(path, state) {},
+    // ASTNodeTypeHere(path, state) {},
+    ImportDeclaration(path) {
+      const from = path?.node?.source?.value;
+      const specifiers = path?.node?.specifiers || [];
+      // console.log("...path", from, path?.node);
+      if (from === fromLibrary) {
+        path.node.source.value = toLibrary;
+        let newSpecifiers = specifiers.reduce((result, item) => {
+          const name = item.imported.name;
+          const rawItem = rawTagMap[name];
+          const libraryItem = libraryTagMap[name];
+          if (libraryItem) {
+            const newName = libraryItem?.tag || libraryItem;
+            item.imported.name = newName;
+            item.local.name = newName;
+            // console.log("...result", name, newName);
+            return [...result, item];
+          } else if (!rawItem) {
+            return [...result, item];
+          }
+          return result;
+        }, []);
+        path.node.specifiers = newSpecifiers;
+        // 如果出现 `import "antd"` 这种形式，remove 掉 path
+        if (!newSpecifiers?.length) {
+          path.remove();
+        }
+      } else if (from && from.startsWith(".")) {
+        // 相对路径引入
+        if (from.split("/").pop().includes(".")) {
+          // console.log("....from", from);
+          // path.node.source.value = "...."; // ele.replaceWith("...");
+          deps.push({
+            pathStr: from, //path.node.source.value,
+            node: path.node,
+          });
+        } else {
+          // console.log("..else..from", from);
+          deps.push({
+            pathStr: from, //path.node.source.value,
+            node: path.node,
+          });
+        }
+      } else if (from === "@tarojs/taro") {
+        path.node.source.value = "@/utils/taro";
+      }
+    },
+    JSXElement(path) {
+      const openingElement = path?.node?.openingElement;
+      const openingElementNode = openingElement?.name;
+      const closingElementNode = path?.node?.closingElement?.name;
+      const tag = openingElementNode?.name;
+      // console.log("...tag", tag);
+      const allTagMap = { ...rawTagMap, ...libraryTagMap };
+      let target = allTagMap[tag];
+      if (target) {
+        const tagName = target.tag || target;
+        openingElementNode.name = tagName;
+        if (typeof target === "object") {
+          const { className } = target;
+          if (className) {
+            const attributes = openingElement.attributes;
+            let existedClassName = (attributes || []).find((item) => {
+              const attributeName = item.name.name;
+              return attributeName === "className";
+            });
+            if (existedClassName?.value) {
+              existedClassName.value += ` ${className}`;
+            } else {
+              if (!attributes) {
+                openingElement.attributes = [];
+              }
+              const newAttribute = t.jSXAttribute(
+                t.jsxIdentifier("className"),
+                t.stringLiteral(className)
+              );
+              openingElement.attributes.push(newAttribute);
+            }
+          }
+        }
+        if (closingElementNode) {
+          closingElementNode.name = tagName;
+        }
+      }
+    },
+    // JSXIdentifier(path) {
+    //   // console.log("...JSXIdentifier", path);
+    //   const name = path.node.name;
+    //   let target = tagMap[name];
+    //   if (target) {
+    //     const { tag } = target;
+    //     // console.log("tag", tag, tag);
 
-      console.log("...deps", fileEntryPath, deps);
-      // console.log("...result code", prettierFormat(outputCode));
-      // fs.mkdirSync("output");
-      // fs.mkdirSync(`${output}/${pageEntryPath}`);
-      callback?.(deps, fileEntryPath);
-      writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
-    }
-  );
+    //     path.node.name = tag;
+    //     // path.replaceWith()
+    //   }
+    // },
+    // },
+  });
+
+  const { code: resultCode, map } = generator(ast, {});
+
+  console.log("...resultCode", resultCode, map);
+
+  // transform(
+  //   code,
+  //   {
+  //     ast: true,
+  //     filename: fileEntryPath,
+  //     plugins: [
+  //       function () {
+  //         return {
+  //           visitor: {
+  //             Program: (path, _asset) => {
+  //               treeShake(path.scope);
+  //             },
+  //             // Identifier(path, state) {},
+  //             // ASTNodeTypeHere(path, state) {},
+  //             ImportDeclaration(path) {
+  //               const from = path?.node?.source?.value;
+  //               const specifiers = path?.node?.specifiers || [];
+  //               // console.log("...path", from, path?.node);
+  //               if (from === fromLibrary) {
+  //                 path.node.source.value = toLibrary;
+  //                 let newSpecifiers = specifiers.reduce((result, item) => {
+  //                   const name = item.imported.name;
+  //                   const rawItem = rawTagMap[name];
+  //                   const libraryItem = libraryTagMap[name];
+  //                   if (libraryItem) {
+  //                     const newName = libraryItem?.tag || libraryItem;
+  //                     item.imported.name = newName;
+  //                     item.local.name = newName;
+  //                     // console.log("...result", name, newName);
+  //                     return [...result, item];
+  //                   } else if (!rawItem) {
+  //                     return [...result, item];
+  //                   }
+  //                   return result;
+  //                 }, []);
+  //                 path.node.specifiers = newSpecifiers;
+  //                 // 如果出现 `import "antd"` 这种形式，remove 掉 path
+  //                 if (!newSpecifiers?.length) {
+  //                   path.remove();
+  //                 }
+  //               } else if (from && from.startsWith(".")) {
+  //                 // 相对路径引入
+  //                 if (from.split("/").pop().includes(".")) {
+  //                   // console.log("....from", from);
+  //                   // path.node.source.value = "...."; // ele.replaceWith("...");
+  //                   deps.push({
+  //                     pathStr: from, //path.node.source.value,
+  //                     node: path.node,
+  //                   });
+  //                 } else {
+  //                   // console.log("..else..from", from);
+  //                   deps.push({
+  //                     pathStr: from, //path.node.source.value,
+  //                     node: path.node,
+  //                   });
+  //                 }
+  //               } else if (from === "@tarojs/taro") {
+  //                 path.node.source.value = "@/utils/taro";
+  //               }
+  //             },
+  //             JSXElement(path) {
+  //               const openingElement = path?.node?.openingElement;
+  //               const openingElementNode = openingElement?.name;
+  //               const closingElementNode = path?.node?.closingElement?.name;
+  //               const tag = openingElementNode?.name;
+  //               // console.log("...tag", tag);
+  //               const allTagMap = { ...rawTagMap, ...libraryTagMap };
+  //               let target = allTagMap[tag];
+  //               if (target) {
+  //                 const tagName = target.tag || target;
+  //                 openingElementNode.name = tagName;
+  //                 if (typeof target === "object") {
+  //                   const { className } = target;
+  //                   if (className) {
+  //                     const attributes = openingElement.attributes;
+  //                     let existedClassName = (attributes || []).find((item) => {
+  //                       const attributeName = item.name.name;
+  //                       return attributeName === "className";
+  //                     });
+  //                     if (existedClassName?.value) {
+  //                       existedClassName.value += ` ${className}`;
+  //                     } else {
+  //                       if (!attributes) {
+  //                         openingElement.attributes = [];
+  //                       }
+  //                       const newAttribute = t.jSXAttribute(
+  //                         t.jsxIdentifier("className"),
+  //                         t.stringLiteral(className)
+  //                       );
+  //                       openingElement.attributes.push(newAttribute);
+  //                     }
+  //                   }
+  //                 }
+  //                 if (closingElementNode) {
+  //                   closingElementNode.name = tagName;
+  //                 }
+  //               }
+  //             },
+  //             // JSXIdentifier(path) {
+  //             //   // console.log("...JSXIdentifier", path);
+  //             //   const name = path.node.name;
+  //             //   let target = tagMap[name];
+  //             //   if (target) {
+  //             //     const { tag } = target;
+  //             //     // console.log("tag", tag, tag);
+
+  //             //     path.node.name = tag;
+  //             //     // path.replaceWith()
+  //             //   }
+  //             // },
+  //           },
+  //         };
+  //       },
+  //     ],
+  //   },
+  //   function (_err, result) {
+  //     console.log("...err", _err);
+  //     const { code: outputCode } = result || {};
+  //     const relativePath = fileEntryPath.split("demo")[1];
+
+  //     console.log("...deps", fileEntryPath, deps);
+  //     // console.log("...result code", prettierFormat(outputCode));
+  //     // fs.mkdirSync("output");
+  //     // fs.mkdirSync(`${output}/${pageEntryPath}`);
+  //     callback?.(deps, fileEntryPath);
+  //     writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
+  //   }
+  // );
   // return deps;
 };
 

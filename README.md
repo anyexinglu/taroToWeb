@@ -48,3 +48,14 @@ clone 项目并 yarn 后：
 
 - 分享前看下 pin-cli 和 cava 中相关应用
 - 举例 tsdoc、抽取组件 interface 作为配置面板
+
+## 收获
+
+一、直接引入 @babel/core 的 transform，ts 被转译的问题
+
+1、 @babel/core 与 @babel/parser 中的 parse 不同
+`import { parse } from "@babel/core"`
+不同于：
+`import { parse } from "@babel/parser"`
+
+<!-- 2、如果直接引入 transform，则 -->
