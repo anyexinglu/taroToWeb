@@ -49,22 +49,6 @@ clone 项目并 yarn 后：
 - 分享前看下 pin-cli 和 cava 中相关应用
 - 举例 tsdoc、抽取组件 interface 作为配置面板
 
-## 收获
+## 学习收获
 
-一、直接引入 @babel/core 的 transform，ts 被转译的问题
-
-1、 @babel/core 与 @babel/parser 中的 parse 不同
-`import { parse } from "@babel/core"`
-不同于：
-`import { parse } from "@babel/parser"`
-
-<!-- 2、如果直接引入 transform，则 -->
-
-## 相关资源推荐
-
-- [babel](https://babeljs.io/docs/en/)
-  - [the-super-tiny-compiler](https://github.com/jamiebuilds/the-super-tiny-compiler/blob/master/the-super-tiny-compiler.js)
-- [前端领域的转译打包工具链](https://deeplang.org/assets/files/transpilers-package-tools-in-frontend-by-xuguang.pdf)
-  - [《前端领域的转译打包工具链》上篇](https://juejin.cn/post/6956602138201948196)
-- [回顾 babel 6 和 7，来预测下 babel 8](https://juejin.cn/post/6956224866312060942)
-- [阿里妈妈的 AST 处理工具](https://github.com/thx/gogocode)
+[Learn.md](./Learn.md)
