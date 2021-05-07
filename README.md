@@ -34,9 +34,14 @@ clone 项目并 yarn 后：
   - [x] 支持页面内部链接跳转
 - [x] 支持 antd（less）
 
+## 渐进式
+
+- v0: 用 core 的 transform 完成要求，但存在 ts 类型丢失的问题
+- v1：分拆为 parse、traverse、generator 三步走，解决 ts 类型丢失的问题。
+- v2（TODO）: 尝试 recast
+
 ## TODO
 
-- 修复 ts 丢失、空行被删除的问题
 - 支持命令行方式调用
 - 用 recast 改写、用 Asset 优化代码 https://segmentfault.com/a/1190000016231512
 - 学习个把 eslint 插件提醒：import 顺序、合并 import、禁止 setState callback 。

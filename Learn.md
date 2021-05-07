@@ -1,6 +1,6 @@
 ## 收获
 
-一、直接引入 @babel/core 的 transform，ts 被转译、空行被删除的问题
+一、直接引入 @babel/core 的 transform，ts 被转译的问题（TODO）
 
 1、 @babel/core 与 @babel/parser 中的 parse 不同
 `import { parse } from "@babel/core"`
