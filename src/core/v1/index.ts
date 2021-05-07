@@ -19,7 +19,7 @@ import {
 // const exts = [".ts", ".json", ".scss", ".tsx"];
 
 let { demoRoot, ui, output: commonOutput, templateRoot, root } = config;
-let output = commonOutput + "/v0";
+let output = commonOutput + "/v1";
 const { rawTagMap, fromLibrary, toLibrary, libraryTagMap } = ui;
 // console.log("...config", config, config.root, config.demoRoot);
 
@@ -28,7 +28,7 @@ const paths = {
   ...config.pathMap,
 };
 
-const transformJsx = async (fileEntryPath: string, _callback) => {
+const transformJsx = async (fileEntryPath: string, callback) => {
   const input = await fs.readFile(fileEntryPath);
   const code = input.toString();
   let deps: any = [];
@@ -154,139 +154,15 @@ const transformJsx = async (fileEntryPath: string, _callback) => {
     // },
   });
 
-  const { code: resultCode, map } = generator(ast, {});
+  const { code: outputCode } = generator(ast, {});
+  const relativePath = fileEntryPath.split("demo")[1];
 
-  console.log("...resultCode", resultCode, map);
-
-  // transform(
-  //   code,
-  //   {
-  //     ast: true,
-  //     filename: fileEntryPath,
-  //     plugins: [
-  //       function () {
-  //         return {
-  //           visitor: {
-  //             Program: (path, _asset) => {
-  //               treeShake(path.scope);
-  //             },
-  //             // Identifier(path, state) {},
-  //             // ASTNodeTypeHere(path, state) {},
-  //             ImportDeclaration(path) {
-  //               const from = path?.node?.source?.value;
-  //               const specifiers = path?.node?.specifiers || [];
-  //               // console.log("...path", from, path?.node);
-  //               if (from === fromLibrary) {
-  //                 path.node.source.value = toLibrary;
-  //                 let newSpecifiers = specifiers.reduce((result, item) => {
-  //                   const name = item.imported.name;
-  //                   const rawItem = rawTagMap[name];
-  //                   const libraryItem = libraryTagMap[name];
-  //                   if (libraryItem) {
-  //                     const newName = libraryItem?.tag || libraryItem;
-  //                     item.imported.name = newName;
-  //                     item.local.name = newName;
-  //                     // console.log("...result", name, newName);
-  //                     return [...result, item];
-  //                   } else if (!rawItem) {
-  //                     return [...result, item];
-  //                   }
-  //                   return result;
-  //                 }, []);
-  //                 path.node.specifiers = newSpecifiers;
-  //                 // 如果出现 `import "antd"` 这种形式，remove 掉 path
-  //                 if (!newSpecifiers?.length) {
-  //                   path.remove();
-  //                 }
-  //               } else if (from && from.startsWith(".")) {
-  //                 // 相对路径引入
-  //                 if (from.split("/").pop().includes(".")) {
-  //                   // console.log("....from", from);
-  //                   // path.node.source.value = "...."; // ele.replaceWith("...");
-  //                   deps.push({
-  //                     pathStr: from, //path.node.source.value,
-  //                     node: path.node,
-  //                   });
-  //                 } else {
-  //                   // console.log("..else..from", from);
-  //                   deps.push({
-  //                     pathStr: from, //path.node.source.value,
-  //                     node: path.node,
-  //                   });
-  //                 }
-  //               } else if (from === "@tarojs/taro") {
-  //                 path.node.source.value = "@/utils/taro";
-  //               }
-  //             },
-  //             JSXElement(path) {
-  //               const openingElement = path?.node?.openingElement;
-  //               const openingElementNode = openingElement?.name;
-  //               const closingElementNode = path?.node?.closingElement?.name;
-  //               const tag = openingElementNode?.name;
-  //               // console.log("...tag", tag);
-  //               const allTagMap = { ...rawTagMap, ...libraryTagMap };
-  //               let target = allTagMap[tag];
-  //               if (target) {
-  //                 const tagName = target.tag || target;
-  //                 openingElementNode.name = tagName;
-  //                 if (typeof target === "object") {
-  //                   const { className } = target;
-  //                   if (className) {
-  //                     const attributes = openingElement.attributes;
-  //                     let existedClassName = (attributes || []).find((item) => {
-  //                       const attributeName = item.name.name;
-  //                       return attributeName === "className";
-  //                     });
-  //                     if (existedClassName?.value) {
-  //                       existedClassName.value += ` ${className}`;
-  //                     } else {
-  //                       if (!attributes) {
-  //                         openingElement.attributes = [];
-  //                       }
-  //                       const newAttribute = t.jSXAttribute(
-  //                         t.jsxIdentifier("className"),
-  //                         t.stringLiteral(className)
-  //                       );
-  //                       openingElement.attributes.push(newAttribute);
-  //                     }
-  //                   }
-  //                 }
-  //                 if (closingElementNode) {
-  //                   closingElementNode.name = tagName;
-  //                 }
-  //               }
-  //             },
-  //             // JSXIdentifier(path) {
-  //             //   // console.log("...JSXIdentifier", path);
-  //             //   const name = path.node.name;
-  //             //   let target = tagMap[name];
-  //             //   if (target) {
-  //             //     const { tag } = target;
-  //             //     // console.log("tag", tag, tag);
-
-  //             //     path.node.name = tag;
-  //             //     // path.replaceWith()
-  //             //   }
-  //             // },
-  //           },
-  //         };
-  //       },
-  //     ],
-  //   },
-  //   function (_err, result) {
-  //     console.log("...err", _err);
-  //     const { code: outputCode } = result || {};
-  //     const relativePath = fileEntryPath.split("demo")[1];
-
-  //     console.log("...deps", fileEntryPath, deps);
-  //     // console.log("...result code", prettierFormat(outputCode));
-  //     // fs.mkdirSync("output");
-  //     // fs.mkdirSync(`${output}/${pageEntryPath}`);
-  //     callback?.(deps, fileEntryPath);
-  //     writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
-  //   }
-  // );
-  // return deps;
+  console.log("...deps", fileEntryPath, deps);
+  // console.log("...result code", prettierFormat(outputCode));
+  // fs.mkdirSync("output");
+  // fs.mkdirSync(`${output}/${pageEntryPath}`);
+  callback?.(deps, fileEntryPath);
+  writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
 };
 
 const pipeNormalFile = async (originFileEntryPath: string) => {
