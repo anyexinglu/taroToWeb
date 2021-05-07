@@ -5,7 +5,7 @@ import traverse from "@babel/traverse";
 import { parse } from "@babel/parser";
 import * as Path from "path";
 import * as t from "@babel/types";
-import config from "../config";
+import config from "../../config";
 import treeShake from "./shake";
 import * as ejs from "ejs";
 import {
@@ -18,7 +18,8 @@ import {
 
 // const exts = [".ts", ".json", ".scss", ".tsx"];
 
-const { demoRoot, ui, output, root } = config;
+let { demoRoot, ui, output: commonOutput, templateRoot, root } = config;
+let output = commonOutput + "/v0";
 const { rawTagMap, fromLibrary, toLibrary, libraryTagMap } = ui;
 // console.log("...config", config, config.root, config.demoRoot);
 
@@ -366,7 +367,7 @@ async function build() {
   );
   fs.removeSync(output);
   // deleteAll(output);
-  fs.copySync(Path.join(__dirname, "../template"), Path.join(root, "output"));
+  fs.copySync(templateRoot, output);
   generateRoutes();
 
   const allPages = [
@@ -424,7 +425,7 @@ function generateRoutes() {
     });
   });
   const templateContent = fs
-    .readFileSync(Path.join(__dirname, "../template/src/routes.ejs"))
+    .readFileSync(Path.join(templateRoot, "src/routes.ejs"))
     .toString();
 
   const result = ejs.render(templateContent, {

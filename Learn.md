@@ -29,7 +29,13 @@ preset 是 a set of plugins.
 }
 ```
 
-transform 会受到 babelrc 的影响：https://babeljs.io/docs/en/options#babelrc
+transform 会受到 babelrc 的影响：https://babeljs.io/docs/en/options#babelrc，因为会读取配置 https://sourcegraph.com/github.com/babel/babel@main/-/blob/packages/babel-core/src/config/files/configuration.ts#L30
+
+三、空行丢失
+
+转为 ast 就会丢失空行 https://astexplorer.net/ ，因为 ast 只记录结构，不记录空行 / 空格
+
+https://www.coder.work/article/1321017
 
 ## 相关资源推荐
 

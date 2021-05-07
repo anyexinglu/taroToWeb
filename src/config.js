@@ -5,6 +5,7 @@ export default {
   root,
   srcRoot: __dirname,
   demoRoot: Path.join(root, "/demo"),
+  templateRoot: Path.join(__dirname, "/template"),
   ui: {
     fromLibrary: "@tarojs/components",
     toLibrary: "antd",
