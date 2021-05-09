@@ -1,58 +1,60 @@
-import { transformFromAst } from "@babel/core";
-import { parse } from "@babel/parser";
+import * as recast from "recast";
+const { parse: rparse, print } = recast;
+
+const code = `
+import React from "react";
+import { navigateTo } from "@tarojs/taro";
+import { View, Text, Button } from "@tarojs/components";
+import Header from "../../components/Header";
+import { noop } from "../../utils";
+import "./index.scss";
+
+export default function Index(_props: any) {
+  const a: number = 1;
+  console.log("noop", noop, a);
+  return (
+    <View className="index">
+      <Header />
+      <Text>Hello world!xxx</Text>
+      <Button
+        onClick={() => {
+          navigateTo({
+            url: "/list/index",
+          });
+        }}
+      >
+        去列表页
+      </Button>
+    </View>
+  );
+}
+`;
 
 const build = async () => {
-  const code = `
-  import React from "react";
-  import { View, Text } from "@tarojs/components";
+  const ast = rparse(code, {
+    // babel 才认识 ts，内置的 esprima 不支持
+    parser: require("recast/parsers/babel"),
+  });
+  console.log("...ast", ast);
 
-  export default function List(_props: any) {
-    return (
-      <View className="list">
-        <Text>列表页</Text>
-      </View>
-    );
-  }
-  `;
+  recast.visit(ast, {
+    // visitProgram: (_ctx: any, path: any) => {
+    //   treeShake(path.scope);
+    // },
+    visitImportDeclaration(nodePath) {
+      const path = nodePath.value;
+      const from = path.source.value;
+      const specifiers = path.specifiers || [];
 
-  // https://github.com/anyexinglu/taroToWeb/commit/7abdbfc77433e9d8d5dcf4e9e02d32b479110927
-  const result = await parse(code, {
-    // ast: true,
-    sourceType: "unambiguous",
-    // filename: "fileEntryPath",
-    // presets: ["@babel/preset-typescript"],
-    // presets: [["@babel/preset-typescript", {}]],
-    plugins: [
-      "typescript",
-      "jsx",
-      // "exportDefaultFrom",
-      // "typescript",
-      // "exportNamespaceFrom",
-      // "importAssertions",
-    ],
-    // plugins: ["@babel/plugin-transform-runtime"],
+      console.log("...visitImportDeclaration path", from, specifiers);
+
+      return false;
+    },
   });
 
-  console.log("...result", result);
+  const { code: outputCode } = print(ast);
 
-  const newCode = await transformFromAst(result);
-
-  console.log("...newCode", newCode);
-
-  // transform(
-  //   code,
-  //   {
-  //     // ast: true,
-  //     filename: "fileEntryPath",
-  //     presets: [["@babel/preset-typescript", {}]],
-  //     plugins: ["@babel/plugin-transform-runtime"],
-  //   },
-  //   function (_err, result) {
-  //     console.log("...err", _err);
-  //     const { code: outputCode } = result || {};
-  //     console.log("...outputCode", outputCode);
-  //   }
-  // );
+  console.log("...newCode", outputCode);
 };
 
 build();

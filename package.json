@@ -11,6 +11,7 @@
   "scripts": {
     "webv0": "ts-node src/core/v0/index.ts",
     "webv1": "ts-node src/core/v1/index.ts",
+    "webv2": "ts-node src/core/v2/index.ts",
     "try": "ts-node src/core/try.ts"
   },
   "browserslist": [
@@ -26,7 +27,8 @@
     "fs-extra": "^9.1.0",
     "prettier": "^2.2.1",
     "react": "^16.10.0",
-    "react-dom": "^16.10.0"
+    "react-dom": "^16.10.0",
+    "recast": "^0.20.4"
   },
   "devDependencies": {
     "@babel/core": "^7.8.0",

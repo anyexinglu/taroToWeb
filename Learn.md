@@ -37,6 +37,8 @@ transform 会受到 babelrc 的影响：https://babeljs.io/docs/en/options#babel
 
 https://www.coder.work/article/1321017
 
+但是用 recast 就不会丢失。一大特色就是在 print 的时候会尽量的保持源代码的格式，输出时只会重新输出有修改的 ast，未更改过的 ast，会直接按原样输出。所以非常适合那些需要修改源码，并且要把修改后的结果覆写到源码的情况。
+
 ## 相关资源推荐
 
 - [babel](https://babeljs.io/docs/en/)

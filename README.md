@@ -38,12 +38,13 @@ clone 项目并 yarn 后：
 
 - v0: 用 core 的 transform 完成要求，但存在 ts 类型丢失的问题
 - v1：分拆为 parse、traverse、generator 三步走，解决 ts 类型丢失的问题。
-- v2（TODO）: 尝试 recast
+- v2（TODO）: 尝试 recast 的 parse、visit、print 三步走。
+- v3（TODO）：尝试 https://github.com/facebook/jscodeshift
 
 ## TODO
 
 - 支持命令行方式调用
-- 用 recast 改写、用 Asset 优化代码 https://segmentfault.com/a/1190000016231512
+- 用 recast 改写、用 Asset 优化代码 https://segmentfault.com/a/1190000016231512、https://zhuanlan.zhihu.com/p/77696194、http://ldllidonglin.github.io/blog/2019/12/08/2019-12-08-JavaScript%E4%B8%AD%E7%9A%84AST/、https://github.com/facebook/jscodeshift
 - 学习个把 eslint 插件提醒：import 顺序、合并 import、禁止 setState callback 。
   项目中有 new IntersectionObserver，但没有
   require('intersection-observer')
