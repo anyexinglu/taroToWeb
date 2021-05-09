@@ -1,10 +1,13 @@
 import * as recast from "recast";
 const { parse: rparse, print } = recast;
 
+// https://sourcegraph.com/github.com/benjamn/recast/-/blob/test/visit.ts
+
 const code = `
 import React from "react";
 import { navigateTo } from "@tarojs/taro";
 import { View, Text, Button } from "@tarojs/components";
+import "test";
 import Header from "../../components/Header";
 import { noop } from "../../utils";
 import "./index.scss";
@@ -48,6 +51,9 @@ const build = async () => {
 
       console.log("...visitImportDeclaration path", from, specifiers);
 
+      if (!specifiers?.length) {
+        nodePath.replace(); // replace() 即删除
+      }
       return false;
     },
   });
