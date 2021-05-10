@@ -8,9 +8,9 @@
     //   "type": "node-terminal"
     // },
 		{
-      "command": "yarn try",
+      "command": "yarn webv2",
       // "command": "yarn test src/testing/testing.test.tsx",
-      "name": "yarn try",
+      "name": "yarn webv2",
       "request": "launch",
       "type": "node-terminal"
     }

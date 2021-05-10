@@ -5,7 +5,7 @@ import { transform } from "@babel/core";
 // import { parse } from "@babel/parser";
 import * as recast from "recast";
 import * as Path from "path";
-// import * as t from "@babel/types";
+import * as t from "@babel/types";
 import config from "../../config";
 import treeShake from "./shake";
 import * as ejs from "ejs";
@@ -40,7 +40,7 @@ const transformJsx = async (fileEntryPath: string, callback) => {
     // babel 才认识 ts，内置的 esprima 不支持
     parser: require("recast/parsers/babel"),
   });
-  // console.log("...ast", ast);
+  console.log("...fileEntryPath", fileEntryPath);
 
   recast.visit(ast, {
     // visitProgram: (_ctx: any, path: any) => {
@@ -51,13 +51,13 @@ const transformJsx = async (fileEntryPath: string, callback) => {
       const from = path.source.value;
       const specifiers = path.specifiers || [];
 
-      console.log("...visitImportDeclaration path", from, specifiers);
+      // console.log("...visitImportDeclaration path", from, specifiers);
 
       // console.log("...path", from, path?.node);
       if (from === fromLibrary) {
         path.source.value = toLibrary;
         let newSpecifiers = specifiers.reduce((result, item) => {
-          console.log("...item", item, item.imported);
+          // console.log("...item", item, item.imported);
           const name = item.imported.name;
           const rawItem = rawTagMap[name];
           const libraryItem = libraryTagMap[name];
@@ -75,7 +75,7 @@ const transformJsx = async (fileEntryPath: string, callback) => {
         path.specifiers = newSpecifiers;
         // 如果出现 `import "antd"` 这种形式，remove 掉 path
         if (!newSpecifiers?.length) {
-          // path.remove();
+          nodePath.replace(); // replace() 即删除
         }
       } else if (from && from.startsWith(".")) {
         // 相对路径引入
@@ -99,50 +99,55 @@ const transformJsx = async (fileEntryPath: string, callback) => {
 
       return false;
     },
-    // visitJSXElement(path) {
-    //   const openingElement = path?.node?.openingElement;
-    //   const openingElementNode = openingElement?.name;
-    //   const closingElementNode = path?.node?.closingElement?.name;
-    //   const tag = openingElementNode?.name;
-    //   // console.log("...tag", tag);
-    //   const allTagMap = { ...rawTagMap, ...libraryTagMap };
-    //   let target = allTagMap[tag];
-    //   if (target) {
-    //     const tagName = target.tag || target;
-    //     openingElementNode.name = tagName;
-    //     if (typeof target === "object") {
-    //       const { className } = target;
-    //       if (className) {
-    //         const attributes = openingElement.attributes;
-    //         let existedClassName = (attributes || []).find((item) => {
-    //           const attributeName = item.name.name;
-    //           return attributeName === "className";
-    //         });
-    //         if (existedClassName?.value) {
-    //           existedClassName.value += ` ${className}`;
-    //         } else {
-    //           if (!attributes) {
-    //             openingElement.attributes = [];
-    //           }
-    //           const newAttribute = t.jSXAttribute(
-    //             t.jsxIdentifier("className"),
-    //             t.stringLiteral(className)
-    //           );
-    //           openingElement.attributes.push(newAttribute);
-    //         }
-    //       }
-    //     }
-    //     if (closingElementNode) {
-    //       closingElementNode.name = tagName;
-    //     }
-    //   }
-    // },
+    visitJSXElement(nodePath) {
+      const path = nodePath.value;
+      const openingElement = path?.openingElement;
+      const openingElementNode = openingElement?.name;
+      const closingElementNode = path?.closingElement?.name;
+      const tag = openingElementNode?.name;
+      // console.log("...tag", tag);
+      if (tag === "Text") {
+        debugger;
+      }
+      const allTagMap = { ...rawTagMap, ...libraryTagMap };
+      let target = allTagMap[tag];
+      if (target) {
+        const tagName = target.tag || target;
+        openingElementNode.name = tagName;
+        if (typeof target === "object") {
+          const { className } = target;
+          if (className) {
+            const attributes = openingElement.attributes;
+            let existedClassName = (attributes || []).find((item) => {
+              const attributeName = item.name.name;
+              return attributeName === "className";
+            });
+            if (existedClassName?.value) {
+              existedClassName.value += ` ${className}`;
+            } else {
+              if (!attributes) {
+                openingElement.attributes = [];
+              }
+              const newAttribute = t.jSXAttribute(
+                t.jsxIdentifier("className"),
+                t.stringLiteral(className)
+              );
+              openingElement.attributes.push(newAttribute);
+            }
+          }
+        }
+        if (closingElementNode) {
+          closingElementNode.name = tagName;
+        }
+      }
+      return false;
+    },
   });
 
   const { code: outputCode } = print(ast);
   const relativePath = fileEntryPath.split("demo")[1];
 
-  console.log("...deps", fileEntryPath, deps);
+  // console.log("...deps", fileEntryPath, deps);
   // console.log("...result code", prettierFormat(outputCode));
   // fs.mkdirSync("output");
   // fs.mkdirSync(`${output}/${pageEntryPath}`);
@@ -154,7 +159,7 @@ const pipeNormalFile = async (originFileEntryPath: string) => {
   const fileEntryPath = await findRealFile(originFileEntryPath);
   const input = await fs.readFile(fileEntryPath);
   const code = input.toString();
-  console.log("...fileEntryPath", fileEntryPath, code);
+  // console.log("...fileEntryPath", fileEntryPath, code);
 
   const isJs = ["js", "ts"].includes(fileEntryPath.split(".").pop() || "");
   if (isJs) {
@@ -199,7 +204,7 @@ const pipeNormalFile = async (originFileEntryPath: string) => {
         const { code: outputCode } = result || {};
         const relativePath = fileEntryPath.split("demo")[1];
 
-        console.log("...result code", fileEntryPath, code, outputCode);
+        // console.log("...result code", fileEntryPath, code, outputCode);
         // console.log("...result code", prettierFormat(outputCode));
         // fs.mkdirSync("output");
         // fs.mkdirSync(`${output}/${pageEntryPath}`);
@@ -239,7 +244,7 @@ async function build() {
     }, []),
   ];
 
-  console.log("...allPages", allPages);
+  // console.log("...allPages", allPages);
 
   allPages.forEach(async (page: string) => {
     const pageEntryPath = Path.join(demoRoot, "src", `${page}.tsx`);
