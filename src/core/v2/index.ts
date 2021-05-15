@@ -106,9 +106,9 @@ const transformJsx = async (fileEntryPath: string, callback) => {
       const closingElementNode = path?.closingElement?.name;
       const tag = openingElementNode?.name;
       // console.log("...tag", tag);
-      if (tag === "Text") {
-        debugger;
-      }
+      // if (tag === "Text") {
+      //   debugger;
+      // }
       const allTagMap = { ...rawTagMap, ...libraryTagMap };
       let target = allTagMap[tag];
       if (target) {
@@ -140,7 +140,7 @@ const transformJsx = async (fileEntryPath: string, callback) => {
           closingElementNode.name = tagName;
         }
       }
-      return false;
+      this.traverse(nodePath);
     },
   });
 
