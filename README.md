@@ -38,8 +38,9 @@ clone 项目并 yarn 后：
 
 - v0: 用 core 的 transform 完成要求，但存在 ts 类型丢失的问题
 - v1：分拆为 parse、traverse、generator 三步走，解决 ts 类型丢失的问题。
-- v2（TODO）: 尝试 recast 的 parse、visit、print 三步走。
-- v3（TODO）：尝试 https://github.com/facebook/jscodeshift
+- v2: 尝试 recast 的 parse、visit、print 三步走。
+- v3（TODO）：改造成 Asset
+- v4: 尝试 https://github.com/facebook/jscodeshift
 
 ## TODO
 
