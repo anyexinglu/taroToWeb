@@ -6,6 +6,7 @@ import { transform } from "@babel/core";
 import * as recast from "recast";
 import * as Path from "path";
 import * as t from "@babel/types";
+import Page from "./Asset/Page";
 import config from "../../config";
 import treeShake from "./shake";
 import * as ejs from "ejs";
@@ -242,34 +243,14 @@ async function build() {
       let subTotal = item.pages.map((page) => `${item.root}/${page}`);
       return [...total, ...subTotal];
     }, []),
-  ];
+  ].map((item) => new Page(item));
 
-  // console.log("...allPages", allPages);
+  console.log("...allPages", allPages);
 
-  allPages.forEach(async (page: string) => {
-    const pageEntryPath = Path.join(demoRoot, "src", `${page}.tsx`);
-    // console.log("pageEntryPath", pageEntryPath);
-
-    // const input = await fs.readFile(pageEntryPath);
-    // const code = input.toString();
-    const callback = (deps, referPath: string) => {
-      deps.forEach(async (dep) => {
-        let jsxFilePath = await findJsxFile(
-          Path.join(pageEntryPath, "../", `${dep.pathStr}`)
-        );
-        if (jsxFilePath) {
-          // console.log("...depPath", pageEntryPath, jsxFilePath);
-          // eslint-disable-next-line no-shadow
-          transformJsx(jsxFilePath, callback);
-        } else {
-          let normalFile = Path.join(referPath, "../", `${dep.pathStr}`);
-          pipeNormalFile(normalFile);
-          // writeFile(`${output}${dep.pathStr}`, prettierFormat(outputCode));
-        }
-      });
-    };
-
-    transformJsx(pageEntryPath, callback);
+  allPages.forEach(async (page: Page) => {
+    await page.parse();
+    let code = page.print();
+    console.log("...page", page, code);
   });
 }
 
