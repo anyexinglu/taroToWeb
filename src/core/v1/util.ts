@@ -78,12 +78,12 @@ export function prettierFormat(text: string) {
   });
 }
 
-export async function findJsxFile(basePath: string) {
+export function findJsxFile(basePath: string) {
   // TODO 或许和真实规则不同
   let jsExtensions = [".tsx", ".jsx", "/index.tsx", "/index.jsx"];
   for (let i = 0; i < jsExtensions.length; i++) {
     const path = basePath + jsExtensions[i];
-    const isExist = await fs.existsSync(path);
+    const isExist = fs.existsSync(path);
 
     if (isExist) {
       return path;
