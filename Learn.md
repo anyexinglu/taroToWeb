@@ -47,3 +47,7 @@ https://www.coder.work/article/1321017
   - [《前端领域的转译打包工具链》上篇](https://juejin.cn/post/6956602138201948196)
 - [回顾 babel 6 和 7，来预测下 babel 8](https://juejin.cn/post/6956224866312060942)
 - [阿里妈妈的 AST 处理工具](https://github.com/thx/gogocode)
+- https://segmentfault.com/a/1190000016231512
+- https://zhuanlan.zhihu.com/p/77696194
+- http://ldllidonglin.github.io/blog/2019/12/08/2019-12-08-JavaScript%E4%B8%AD%E7%9A%84AST/
+- https://github.com/facebook/jscodeshift
