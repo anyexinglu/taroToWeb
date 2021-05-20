@@ -1,1 +1,1 @@
-export const dom = () => {};
+export const dom: () => void = () => {};

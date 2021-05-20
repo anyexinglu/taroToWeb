@@ -92,7 +92,7 @@ export function findJsxFile(basePath: string) {
   return "";
 }
 
-export async function findRealFile(basePath: string) {
+export function findRealFile(basePath: string) {
   let fileExtensions = [".ts", ".js", "/index.ts", "/index.js"];
   const hasExtension = (basePath.split("/").pop() || "").includes(".");
   if (hasExtension) {
@@ -100,7 +100,7 @@ export async function findRealFile(basePath: string) {
   }
   for (let i = 0; i < fileExtensions.length; i++) {
     const path = basePath + fileExtensions[i];
-    const isExist = await fs.existsSync(path);
+    const isExist = fs.existsSync(path);
 
     if (isExist) {
       return path;

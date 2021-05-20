@@ -5,6 +5,8 @@ import * as recast from "recast";
 import * as t from "@babel/types";
 import config from "../../../config";
 import { writeFile, prettierFormat, findJsxFile } from "../util";
+import Js from "./Js";
+import Other from "./Other";
 
 const { parse, visit, print } = recast;
 
@@ -20,11 +22,9 @@ export default class Jsx {
   constructor(filePath: string) {
     this.filePath = filePath;
     this.deps = [];
-    console.log("this...", this);
   }
 
   async parse() {
-    console.log("...this in parse", this);
     const fileEntryPath = Path.join(demoRoot, "src", `${this.filePath}.tsx`);
     const input = await fs.readFile(fileEntryPath);
     const code = input.toString();
@@ -42,14 +42,9 @@ export default class Jsx {
         const path = nodePath.value;
         const from = path.source.value;
         const specifiers = path.specifiers || [];
-
-        // console.log("...visitImportDeclaration path", from, specifiers);
-
-        // console.log("...path", from, path?.node);
         if (from === fromLibrary) {
           path.source.value = toLibrary;
           let newSpecifiers = specifiers.reduce((result, item) => {
-            // console.log("...item", item, item.imported);
             const name = item.imported.name;
             const rawItem = rawTagMap[name];
             const libraryItem = libraryTagMap[name];
@@ -57,7 +52,6 @@ export default class Jsx {
               const newName = libraryItem?.tag || libraryItem;
               item.imported.name = newName;
               item.local.name = newName;
-              // console.log("...result", name, newName);
               return [...result, item];
             } else if (!rawItem) {
               return [...result, item];
@@ -71,32 +65,26 @@ export default class Jsx {
           }
         } else if (from && from.startsWith(".")) {
           // 相对路径引入
-          if (from.split("/").pop().includes(".")) {
-            // console.log("....from", from);
-            // path.node.source.value = "...."; // ele.replaceWith("...");
-
-            let depFilePath = findJsxFile(
-              Path.join(fileEntryPath, "../", `${from}`)
-            );
-            if (!depFilePath) {
-              depFilePath = Path.join(fileEntryPath, "../", `${from}`);
-            }
-            console.log("...dep jsxFilePath", depFilePath);
+          let depFilePath = findJsxFile(Path.join(fileEntryPath, "../", from));
+          console.log("....from", from, depFilePath);
+          if (depFilePath) {
             deps.push({
-              from, //path.node.source.value,
-              // node: path.node,
+              from,
               pagePath: depFilePath,
-              file: depFilePath,
+              file: new Jsx(depFilePath),
             });
           } else {
-            // TODO @utils 的方式引入
-            // console.log("..else..from", from);
-            // deps.push({
-            //   from, //path.node.source.value,
-            //   // pagePath: depFilePath,
-            //   node: path.node,
-            // });
+            depFilePath = Path.join(fileEntryPath, "../", `${from}`);
+            const isOther = from.split("/").pop().includes(".");
+            deps.push({
+              from,
+              pagePath: depFilePath,
+              file: isOther ? new Other(depFilePath) : new Js(depFilePath),
+            });
+            console.log("...isOther", isOther, depFilePath);
           }
+          console.log("...dep jsxFilePath", depFilePath);
+          // TODO @utils 的方式引入
         } else if (from === "@tarojs/taro") {
           path.source.value = "@/utils/taro";
         }
@@ -109,10 +97,6 @@ export default class Jsx {
         const openingElementNode = openingElement?.name;
         const closingElementNode = path?.closingElement?.name;
         const tag = openingElementNode?.name;
-        // console.log("...tag", tag);
-        // if (tag === "Text") {
-        //   debugger;
-        // }
         const allTagMap = { ...rawTagMap, ...libraryTagMap };
         let target = allTagMap[tag];
         if (target) {
@@ -147,30 +131,24 @@ export default class Jsx {
         this.traverse(nodePath);
       },
     });
-    this.deps.forEach(async (dep) => {
-      let { file } = dep;
-      if (file) {
-        await file.parse();
-      }
-    });
-    // console.log("...page ast", this.ast);
   }
 
   print() {
     const { code: outputCode } = print(this.ast);
-    console.log("...outputCode", outputCode);
     const fileEntryPath = Path.join(demoRoot, "src", `${this.filePath}.tsx`);
     const relativePath = fileEntryPath.split("demo")[1];
     console.log(
-      "...${output}${relativePath}",
+      "jsx output",
       relativePath,
-      `${output}${relativePath}`
+      `${output}${relativePath}`,
+      this.deps
     );
 
     writeFile(`${output}${relativePath}`, prettierFormat(outputCode));
     this.deps.forEach(async (dep) => {
       let { file } = dep;
       if (file) {
+        await file.parse();
         await file.print();
       }
     });
