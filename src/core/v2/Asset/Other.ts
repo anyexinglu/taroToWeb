@@ -12,8 +12,8 @@ export default class Other {
     this.fileEntryPath = filePath;
   }
 
-  async parse() {
-    const input = await fs.readFile(this.fileEntryPath);
+  parse() {
+    const input = fs.readFileSync(this.fileEntryPath);
     const code = input.toString();
     this.code = code;
   }

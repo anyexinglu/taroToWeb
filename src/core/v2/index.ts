@@ -11,7 +11,7 @@ const paths = {
   ...config.pathMap,
 };
 
-async function build() {
+function build() {
   const { entry } = paths;
   const { pages, subpackages } = require(Path.join(demoRoot, entry)).default;
   fs.removeSync(output);
@@ -28,8 +28,8 @@ async function build() {
 
   console.log("...allPages", allPages);
 
-  allPages.forEach(async (page: Jsx) => {
-    await page.parse();
+  allPages.forEach((page: Jsx) => {
+    page.parse();
     page.print();
   });
 }

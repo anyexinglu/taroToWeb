@@ -20,9 +20,9 @@ export default class Js {
     this.deps = [];
   }
 
-  async parse() {
+  parse() {
     const fileEntryPath = this.fileEntryPath;
-    const input = await fs.readFile(fileEntryPath);
+    const input = fs.readFileSync(fileEntryPath);
     const code = input.toString();
 
     const deps = this.deps;
@@ -66,8 +66,8 @@ export default class Js {
     this.deps.forEach(async (dep) => {
       let { file } = dep;
       if (file) {
-        await file.parse();
-        await file.print();
+        file.parse();
+        file.print();
       }
     });
     return outputCode;
