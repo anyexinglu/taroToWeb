@@ -2,30 +2,26 @@ import * as Path from "path";
 import * as fs from "fs-extra";
 import * as recast from "recast";
 import Other from "./Other";
-import config from "../../../config";
+import config from "../config";
 import { writeFile, prettierFormat, findRealFile } from "../util";
 
 const { parse, visit, print } = recast;
 
-let { output: commonOutput } = config; // , output: commonOutput, templateRoot, root
-// const { rawTagMap, fromLibrary, toLibrary, libraryTagMap } = ui;
-let output = commonOutput + "/v2";
+let { output } = config;
 
 export default class Js {
-  filePath: string;
   fileEntryPath: string;
   deps: any[];
   ast: any;
 
   constructor(filePath: string) {
-    this.filePath = filePath;
+    const fileEntryPath = findRealFile(filePath);
+    this.fileEntryPath = fileEntryPath;
     this.deps = [];
-    console.log("Js this...", this);
   }
 
   async parse() {
-    const fileEntryPath = await findRealFile(this.filePath);
-    this.fileEntryPath = fileEntryPath;
+    const fileEntryPath = this.fileEntryPath;
     const input = await fs.readFile(fileEntryPath);
     const code = input.toString();
 
@@ -48,8 +44,6 @@ export default class Js {
             pagePath: depFilePath,
             file: isOther ? new Other(depFilePath) : new Js(depFilePath),
           });
-          console.log("...isOther", isOther, depFilePath);
-          // pipeNormalFile(normalFile);
         } else if (from === "@tarojs/taro") {
           path.node.source.value = "@/utils/taro";
         }

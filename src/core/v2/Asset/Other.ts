@@ -1,9 +1,8 @@
 import * as fs from "fs-extra";
-import config from "../../../config";
+import config from "../config";
 import { writeFile } from "../util";
 
-let { output: commonOutput } = config; // , output: commonOutput, templateRoot, root
-let output = commonOutput + "/v2";
+let { output } = config;
 
 export default class Other {
   fileEntryPath: string;
@@ -11,13 +10,11 @@ export default class Other {
 
   constructor(filePath: string) {
     this.fileEntryPath = filePath;
-    console.log("Other this...", this);
   }
 
   async parse() {
     const input = await fs.readFile(this.fileEntryPath);
     const code = input.toString();
-    console.log("....do nothing", this.fileEntryPath, code);
     this.code = code;
   }
 

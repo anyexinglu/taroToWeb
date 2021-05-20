@@ -1,31 +1,29 @@
 import * as Path from "path";
 import * as fs from "fs-extra";
 import * as recast from "recast";
-// TODO
 import * as t from "@babel/types";
-import config from "../../../config";
+import config from "../config";
 import { writeFile, prettierFormat, findJsxFile } from "../util";
 import Js from "./Js";
 import Other from "./Other";
 
 const { parse, visit, print } = recast;
 
-let { demoRoot, output: commonOutput, ui } = config; // , output: commonOutput, templateRoot, root
+let { output, ui } = config;
 const { rawTagMap, fromLibrary, toLibrary, libraryTagMap } = ui;
-let output = commonOutput + "/v2";
-
 export default class Jsx {
-  filePath: string;
+  fileEntryPath: string;
   deps: any[];
   ast: any;
 
   constructor(filePath: string) {
-    this.filePath = filePath;
+    this.fileEntryPath = findJsxFile(filePath);
+    console.log("...jsx filePath", filePath, this.fileEntryPath);
     this.deps = [];
   }
 
   async parse() {
-    const fileEntryPath = Path.join(demoRoot, "src", `${this.filePath}.tsx`);
+    const fileEntryPath = this.fileEntryPath;
     const input = await fs.readFile(fileEntryPath);
     const code = input.toString();
     const deps = this.deps;
@@ -65,9 +63,9 @@ export default class Jsx {
           }
         } else if (from && from.startsWith(".")) {
           // 相对路径引入
-          let depFilePath = findJsxFile(Path.join(fileEntryPath, "../", from));
+          let depFilePath = Path.join(fileEntryPath, "../", from);
           console.log("....from", from, depFilePath);
-          if (depFilePath) {
+          if (findJsxFile(depFilePath)) {
             deps.push({
               from,
               pagePath: depFilePath,
@@ -81,9 +79,7 @@ export default class Jsx {
               pagePath: depFilePath,
               file: isOther ? new Other(depFilePath) : new Js(depFilePath),
             });
-            console.log("...isOther", isOther, depFilePath);
           }
-          console.log("...dep jsxFilePath", depFilePath);
           // TODO @utils 的方式引入
         } else if (from === "@tarojs/taro") {
           path.source.value = "@/utils/taro";
@@ -135,7 +131,7 @@ export default class Jsx {
 
   print() {
     const { code: outputCode } = print(this.ast);
-    const fileEntryPath = Path.join(demoRoot, "src", `${this.filePath}.tsx`);
+    const fileEntryPath = this.fileEntryPath;
     const relativePath = fileEntryPath.split("demo")[1];
     console.log(
       "jsx output",

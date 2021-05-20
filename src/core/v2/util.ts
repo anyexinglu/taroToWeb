@@ -1,6 +1,9 @@
 import * as fs from "fs";
 import * as prettier from "prettier";
+import * as ejs from "ejs";
 import * as Path from "path";
+import config from "./config";
+let { output, templateRoot } = config;
 
 /**
  * 递归创建目录
@@ -14,24 +17,6 @@ export const makeDirs = (path) => {
     return true;
   }
 };
-
-// export function deleteAll(path) {
-//   let files: any[] = [];
-//   if (fs.existsSync(path)) {
-//     files = fs.readdirSync(path);
-//     files.forEach(function (file, _index) {
-//       let curPath = path + "/" + file;
-//       if (fs.statSync(curPath).isDirectory()) {
-//         // recurse
-//         deleteAll(curPath);
-//       } else {
-//         // delete file
-//         fs.unlinkSync(curPath);
-//       }
-//     });
-//     fs.rmdirSync(path);
-//   }
-// }
 
 // 指定路径下创建文件并写入 code
 export const writeFile = (path, code) => {
@@ -79,7 +64,9 @@ export function prettierFormat(text: string) {
 }
 
 export function findJsxFile(basePath: string) {
-  // TODO 或许和真实规则不同
+  if (basePath.includes(".tsx") || basePath.includes(".jsx")) {
+    return basePath;
+  }
   let jsExtensions = [".tsx", ".jsx", "/index.tsx", "/index.jsx"];
   for (let i = 0; i < jsExtensions.length; i++) {
     const path = basePath + jsExtensions[i];
@@ -107,4 +94,31 @@ export function findRealFile(basePath: string) {
     }
   }
   return basePath;
+}
+
+// 创建路由配置
+export function generateRoutes(pages, subpackages) {
+  const routes = [
+    {
+      path: "/",
+      componentPath: pages[0],
+    },
+  ];
+  subpackages.forEach((element) => {
+    element.pages.forEach((page) => {
+      routes.push({
+        path: `/${element.root}/${page}`.replace(/\/index$/, ""),
+        componentPath: `${element.root}/${page}`,
+      });
+    });
+  });
+  const templateContent = fs
+    .readFileSync(Path.join(templateRoot, "src/routes.ejs"))
+    .toString();
+
+  const result = ejs.render(templateContent, {
+    routes,
+  });
+
+  writeFile(`${output}/src/routes.tsx`, prettierFormat(result));
 }
