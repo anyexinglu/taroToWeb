@@ -1,0 +1,2 @@
+- renderToString
+- renderToStream

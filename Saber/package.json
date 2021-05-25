@@ -1,0 +1,13 @@
+{
+  "name": "Saber",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "saberv1": "ts-node src/core/v1/index"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}
