@@ -1,5 +1,0 @@
-- ssr
-  - renderToString
-  - renderToStream
-- csr
-  - loadFile
