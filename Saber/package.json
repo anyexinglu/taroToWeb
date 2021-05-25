@@ -7,6 +7,7 @@
     "saberv1": "ts-node src/core/v1/index"
   },
   "dependencies": {
+    "prettier": "^2.3.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   }

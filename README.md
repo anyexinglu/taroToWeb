@@ -48,7 +48,7 @@ clone 项目并 yarn 后：
 ## TODO
 
 - 支持命令行方式调用
-- 用 recast 改写、用 Asset 优化代码
+- vite 模板改成 ssr
 - 学习个把 eslint 插件提醒：import 顺序、合并 import、禁止 setState callback 。
   项目中有 new IntersectionObserver，但没有
   require('intersection-observer')

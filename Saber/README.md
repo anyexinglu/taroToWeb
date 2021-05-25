@@ -1,2 +1,5 @@
-- renderToString
-- renderToStream
+- ssr
+  - renderToString
+  - renderToStream
+- csr
+  - loadFile
